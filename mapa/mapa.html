@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>🌍 Mapa Mundi - Clima Interativo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ✅ Tailwind CSS (para estilo moderno e responsivo) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ✅ Leaflet CSS (para mapas interativos) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    /* Garantindo que o mapa ocupe toda a altura da tela */
+    #map {
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Personaliza o popup do Leaflet para combinar com o tema escuro */
+    .leaflet-popup-content-wrapper {
+      background: #1e293b; /* azul escuro */
+      color: #f8fafc;       /* branco azulado */
+      font-family: 'Segoe UI', sans-serif;
+      border-radius: 8px;
+    }
+
+    .leaflet-popup-tip {
+      background: #1e293b;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans relative">
+
+  <!-- 🔍 Campo de busca + botões de ação fixos no topo -->
+  <div class="absolute top-4 left-12 z-[1000] flex gap-2 items-center">
+    <!-- Campo de busca por cidade -->
+    <input type="text" id="searchInput" placeholder="🔎 Buscar cidade..."
+      class="px-4 py-2 rounded-lg text-black shadow-md focus:outline-none w-64"
+      onkeydown="handleSearch(event)">
+
+    <!-- Botão: ir para localização atual -->
+    <button onclick="goToLocation()"
+      class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold shadow-md">
+      📍 Minha Localização
+    </button>
+
+    <!-- Botão: alternar tema do mapa -->
+    <button onclick="toggleTheme()"
+      class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold shadow-md">
+      🌓 Mudar Estilo
+    </button>
+  </div>
+
+  <!-- 📋 Histórico de locais clicados (inferior esquerdo) -->
+  <div class="absolute bottom-4 left-4 bg-white text-gray-900 p-4 rounded-lg shadow-xl z-[1000] max-h-48 overflow-y-auto w-64">
+    <strong class="block mb-2">🗺️ Locais clicados:</strong>
+    <ul id="clickLog" class="list-disc list-inside text-sm space-y-1"></ul>
+  </div>
+
+  <!-- 🌍 Mapa interativo -->
+  <div id="map" class="relative z-0"></div>
+
+  <!-- ✅ Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // 🔐 Sua chave da API OpenWeatherMap (já incluída)
+    const apiKey = "f1a4663341886a370c047b8e0049b3f2";
+
+    // 📍 Inicializa o mapa centralizado no mundo
+    const map = L.map('map').setView([0, 0], 2);
+
+    // 🗺️ Define os estilos de mapa disponíveis
+    const tileOptions = {
+      light: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }),
+      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CartoDB' }),
+      satellite: L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0','mt1','mt2','mt3'],
+        attribution: '© Google'
+      })
+    };
+
+    // 🎨 Define o estilo inicial do mapa (claro)
+    let currentTile = tileOptions.light;
+    currentTile.addTo(map);
+
+    // 🌓 Alterna o estilo do mapa entre claro, escuro e satélite
+    function toggleTheme() {
+      map.removeLayer(currentTile);
+      if (currentTile === tileOptions.light) currentTile = tileOptions.dark;
+      else if (currentTile === tileOptions.dark) currentTile = tileOptions.satellite;
+      else currentTile = tileOptions.light;
+      currentTile.addTo(map);
+    }
+
+    // 📍 Leva o usuário para sua localização real (se permitido)
+    function goToLocation() {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 6);
+        L.marker([latitude, longitude]).addTo(map)
+          .bindPopup("📍 Você está aqui")
+          .openPopup();
+      }, () => alert("Não foi possível obter sua localização."));
+    }
+
+    // 🧾 Adiciona um item ao histórico (inferior esquerdo)
+    function addToHistory(content) {
+      const li = document.createElement('li');
+      li.textContent = content;
+      document.getElementById('clickLog').appendChild(li);
+    }
+
+    // 🌡️ Busca dados de clima na OpenWeatherMap por coordenadas
+    async function fetchWeather(lat, lon) {
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=pt_br&appid=${apiKey}`);
+      if (!res.ok) throw new Error("Erro na API");
+      return res.json();
+    }
+
+    // 🧭 Converte graus para direção textual do vento (ex: NE, S, etc)
+    function windDirection(deg) {
+      const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+      return dirs[Math.round(deg / 45) % 8];
+    }
+
+    // 🖱️ Evento: clique no mapa → mostra clima no local
+    map.on('click', async e => {
+      const { lat, lng } = e.latlng;
+      try {
+        const data = await fetchWeather(lat, lng);
+        const name = data.name || "Desconhecido";
+        const temp = data.main.temp.toFixed(1);
+        const desc = data.weather[0].description;
+        const icon = data.weather[0].icon;
+        const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+        const wind = data.wind;
+
+        const popup = `
+          <div style="text-align:center">
+            <strong>${name}</strong><br>
+            <img src="${iconUrl}" style="width:40px"><br>
+            ${desc}, ${temp}°C<br>
+            💨 Vento: ${wind.speed} m/s (${windDirection(wind.deg)})
+          </div>
+        `;
+        L.popup().setLatLng(e.latlng).setContent(popup).openOn(map);
+        addToHistory(`${name} [${lat.toFixed(2)}, ${lng.toFixed(2)}]`);
+      } catch {
+        L.popup().setLatLng(e.latlng).setContent("❌ Erro ao obter clima.").openOn(map);
+      }
+    });
+
+    // 🔎 Função de busca por nome da cidade (usando OpenStreetMap Nominatim)
+    async function handleSearch(e) {
+      if (e.key === 'Enter') {
+        const q = e.target.value.trim();
+        if (!q) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+        const data = await res.json();
+        if (!data.length) return alert("Cidade não encontrada.");
+        const { lat, lon } = data[0];
+        map.setView([lat, lon], 6);
+        map.fire('click', { latlng: { lat: parseFloat(lat), lng: parseFloat(lon) } });
+      }
+    }
+  </script>
+</body>
+</html>

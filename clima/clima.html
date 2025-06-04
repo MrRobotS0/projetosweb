@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>🌤️ Painel Climático</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind para estilos utilitários -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      transition: background 0.8s ease, color 0.8s ease;
+    }
+
+    /* Temas com gradientes */
+    .theme-0 { background: linear-gradient(to right, #0f2027, #203a43, #2c5364); color: white; }
+    .theme-1 { background: linear-gradient(to right, #1e3c72, #2a5298); color: white; }
+    .theme-2 { background: linear-gradient(to right, #8e2de2, #4a00e0); color: white; }
+    .theme-3 { background: linear-gradient(to right, #e96443, #904e95); color: white; }
+    .theme-4 { background: linear-gradient(to right, #ff4e50, #f9d423); color: #111; }
+    .theme-5 { background: linear-gradient(to right, #283c86, #45a247); color: white; }
+    .theme-6 { background: linear-gradient(to right, #1f4037, #99f2c8); color: #111; }
+    .theme-7 { background: linear-gradient(to right, #f7971e, #ffd200); color: #111; }
+    .theme-8 { background: linear-gradient(to right, #141e30, #243b55); color: white; }
+    .theme-9 { background: linear-gradient(to right, #000000, #434343); color: white; }
+
+    /* Estilo dos cards (efeito vidro) */
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 140px;
+      transition: all 0.4s ease;
+    }
+
+    /* Estilo do <select> */
+    select {
+      background-color: rgba(255, 255, 255, 0.9);
+      color: black;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+    }
+  </style>
+</head>
+
+<body class="theme-0 min-h-screen text-white">
+
+  <div class="max-w-6xl mx-auto px-4 py-10">
+    <!-- Cabeçalho -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
+      <h1 class="text-4xl font-bold">🌍 Painel Climático</h1>
+
+      <!-- Seletor de temas com seta customizada -->
+      <div class="relative w-fit">
+        <select id="themeSelector" onchange="selectTheme()"
+          class="appearance-none bg-white text-black font-medium px-5 py-2 pr-10 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all duration-300 hover:scale-105 cursor-pointer">
+          <option value="0">Azul Escuro</option>
+          <option value="1">Azul Royal</option>
+          <option value="2">Roxo</option>
+          <option value="3">Laranja e Vinho</option>
+          <option value="4">Laranja e Amarelo</option>
+          <option value="5">Azul e Verde</option>
+          <option value="6">Verde Claro</option>
+          <option value="7">Amarelo Solar</option>
+          <option value="8">Azul Noturno</option>
+          <option value="9">Cinza Escuro</option>
+        </select>
+
+        <!-- Seta decorativa -->
+        <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campo de busca -->
+    <div class="flex flex-col sm:flex-row justify-center gap-4 mb-8 items-center">
+      <input id="cityInput" type="text" placeholder="Digite uma cidade..."
+        class="w-full max-w-md px-5 py-3 rounded-lg text-black placeholder-gray-400 transition-all duration-300 focus:ring-4 focus:ring-emerald-400 focus:outline-none shadow-lg" />
+      <button onclick="getWeather()"
+        class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-green-500 hover:to-emerald-600 px-6 py-3 rounded-lg text-white font-bold shadow-lg transform transition-all duration-300 hover:scale-105">
+        🔍 Buscar
+      </button>
+    </div>
+
+    <!-- Alertas de clima -->
+    <div id="weatherAlert" class="mb-6 text-center font-bold hidden"></div>
+
+    <!-- Dados climáticos -->
+    <div id="weatherInfo" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
+
+    <!-- Gráfico de previsão -->
+    <div class="card">
+      <h2 class="text-2xl mb-4 font-semibold text-center">📈 Previsão das Próximas Horas</h2>
+      <canvas id="forecastChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = "f1a4663341886a370c047b8e0049b3f2";
+    let currentTheme = 0;
+
+    // Altera o tema com base na seleção
+    function selectTheme() {
+      const newTheme = parseInt(document.getElementById("themeSelector").value);
+      document.body.classList.remove("theme-" + currentTheme);
+      document.body.classList.add("theme-" + newTheme);
+      currentTheme = newTheme;
+    }
+
+    // Busca e exibe os dados do clima
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value;
+      if (!city) return alert("Digite o nome de uma cidade.");
+
+      try {
+        const [currentRes, forecastRes] = await Promise.all([
+          fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=pt_br&appid=${apiKey}`),
+          fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&lang=pt_br&appid=${apiKey}`)
+        ]);
+
+        if (!currentRes.ok || !forecastRes.ok) return alert("Cidade não encontrada.");
+
+        const currentData = await currentRes.json();
+        const forecastData = await forecastRes.json();
+
+        renderCurrent(currentData);
+        renderForecast(forecastData);
+
+        const { lat, lon } = currentData.coord;
+        const alertRes = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,daily&units=metric&lang=pt_br&appid=${apiKey}`);
+        if (alertRes.ok) renderAlert(await alertRes.json());
+      } catch (error) {
+        alert("Erro ao buscar dados. Verifique sua conexão.");
+      }
+    }
+
+    // Exibe alertas climáticos, se houver
+    function renderAlert(data) {
+      const alertBox = document.getElementById('weatherAlert');
+      if (data.alerts?.length) {
+        const alertMsg = data.alerts.map(a => `<strong>${a.event}:</strong> ${a.description}`).join("<br><br>");
+        alertBox.innerHTML = `⚠️ ${alertMsg}`;
+        alertBox.classList.remove("hidden");
+      } else {
+        alertBox.classList.add("hidden");
+        alertBox.innerHTML = "";
+      }
+    }
+
+    // Exibe os dados climáticos principais
+    function renderCurrent(data) {
+      const temp = data.main.temp.toFixed(1);
+      const feels = data.main.feels_like.toFixed(1);
+      const icon = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+      const desc = data.weather[0].description;
+
+      const infoHTML = `
+        <div class="card flex flex-col items-center justify-center text-center space-y-2">
+          <h2 class="text-xl font-bold">${data.name}</h2>
+          <img src="${icon}" class="w-16 h-16" />
+          <p class="text-3xl font-extrabold">${temp}°C</p>
+          <p class="italic capitalize text-sm opacity-90">${desc}</p>
+        </div>
+        <div class="card flex flex-col items-center justify-center text-center">
+          <h3 class="text-sm font-semibold opacity-70">🌡️ Sensação térmica</h3>
+          <p class="text-xl font-medium">${feels}°C</p>
+        </div>
+        <div class="card flex flex-col items-center justify-center text-center">
+          <h3 class="text-sm font-semibold opacity-70">💨 Vento</h3>
+          <p class="text-lg font-medium">${data.wind.speed} m/s</p>
+          <p class="text-sm">Direção: ${data.wind.deg}°</p>
+        </div>
+        <div class="card flex flex-col items-center justify-center text-center">
+          <h3 class="text-sm font-semibold opacity-70">💧 Umidade</h3>
+          <p class="text-xl font-medium">${data.main.humidity}%</p>
+        </div>
+        <div class="card flex flex-col items-center justify-center text-center">
+          <h3 class="text-sm font-semibold opacity-70">📊 Pressão</h3>
+          <p class="text-xl font-medium">${data.main.pressure} hPa</p>
+        </div>
+        <div class="card flex flex-col items-center justify-center text-center">
+          <h3 class="text-sm font-semibold opacity-70">🌅 Nascer / 🌇 Pôr do sol</h3>
+          <p class="text-sm font-medium">${new Date(data.sys.sunrise * 1000).toLocaleTimeString()}</p>
+          <p class="text-sm font-medium">${new Date(data.sys.sunset * 1000).toLocaleTimeString()}</p>
+        </div>
+      `;
+
+      document.getElementById("weatherInfo").innerHTML = infoHTML;
+    }
+
+    // Renderiza gráfico de previsão das próximas horas
+    function renderForecast(data) {
+      const labels = data.list.slice(0, 8).map(item =>
+        new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      );
+      const temps = data.list.slice(0, 8).map(item => item.main.temp);
+
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      if (window.myChart) window.myChart.destroy(); // Evita duplicação
+
+      window.myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Temperatura (°C)',
+            data: temps,
+            borderColor: '#34d399',
+            backgroundColor: 'rgba(52, 211, 153, 0.2)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: false } }
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

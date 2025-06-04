@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora</title>
+
+    <!-- Ícones (como o ícone de exportar e os botões visuais) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous" />
+
+    <!-- Fonte moderna e leve para a interface -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* === VARIÁVEIS DE TEMA (cores para cada modo visual) === */
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #ffffff;
+            --button-color: rgba(255, 255, 255, 0.08);
+            --accent-color: #ff7b00;
+            --error-color: #ff4c4c;
+        }
+
+        /* Tema claro */
+        [data-theme="light"] {
+            --bg-color: #f0f0f0;
+            --text-color: #111;
+            --button-color: rgba(0, 0, 0, 0.05);
+            --accent-color: #0077ff;
+            --error-color: #d00000;
+        }
+
+        /* Tema neon */
+        [data-theme="neon"] {
+            --bg-color: #000;
+            --text-color: #39ff14;
+            --button-color: rgba(255, 255, 255, 0.05);
+            --accent-color: #39ff14;
+            --error-color: #ff0055;
+        }
+
+        /* === RESET & CONFIG GERAL === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* === TOPO: tema e botão de exportar === */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 10px;
+        }
+
+        /* Estilo do <select> de tema */
+        select,
+        button.export {
+            background-color: var(--button-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        select option {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        /* === CALCULADORA PRINCIPAL === */
+        .calculator {
+            background: var(--button-color);
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Área onde a conta é exibida */
+        .display {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            font-size: 1.8rem;
+            text-align: right;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+
+        /* Botões organizados em grade */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        /* Estilo geral dos botões */
+        button {
+            padding: 15px;
+            font-size: 1rem;
+            background: var(--button-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s ease;
+            position: relative;
+        }
+
+        /* Animação ao passar o mouse */
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Botão "=" (calcular) destacado */
+        button.equal {
+            background: var(--accent-color);
+            color: white;
+            grid-column: span 2;
+        }
+
+        /* Botão "C" (limpar) destacado em vermelho */
+        button.clear {
+            background: var(--error-color);
+            color: white;
+        }
+
+        /* Tooltips personalizados nos botões */
+        button[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-color);
+            color: var(--bg-color);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            display: none;
+        }
+
+        button[data-tooltip]:hover::after {
+            display: block;
+        }
+
+        /* Histórico de operações abaixo da calculadora */
+        .history {
+            font-size: 0.9rem;
+            margin-top: 15px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        /* Layout responsivo para celulares */
+        @media screen and (max-width: 500px) {
+            .buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            button.equal {
+                grid-column: span 4;
+            }
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+
+    <!-- Seletor de tema + botão de exportar -->
+    <div class="top-bar">
+        <select onchange="changeTheme(this.value)">
+            <option value="dark">Tema Escuro</option>
+            <option value="light">Tema Claro</option>
+            <option value="neon">Tema Neon</option>
+        </select>
+        <button class="export" onclick="exportCSV()">📁 Exportar Histórico</button>
+    </div>
+
+    <!-- Calculadora em si -->
+    <div class="calculator">
+        <!-- Visor onde os números aparecem -->
+        <div class="display" id="display">0</div>
+
+        <!-- Todos os botões da calculadora -->
+        <div class="buttons">
+            <!-- Primeira linha -->
+            <button onclick="clearDisplay()" class="clear" data-tooltip="Limpar tudo">C</button>
+            <button onclick="append('(')" data-tooltip="Parêntese de abertura">(</button>
+            <button onclick="append(')')" data-tooltip="Parêntese de fechamento">)</button>
+            <button onclick="append('%')" data-tooltip="Resto (%)">%</button>
+            <button onclick="append('/')" data-tooltip="Divisão">÷</button>
+
+            <!-- Segunda linha -->
+            <button onclick="append('7')" data-tooltip="Número 7">7</button>
+            <button onclick="append('8')" data-tooltip="Número 8">8</button>
+            <button onclick="append('9')" data-tooltip="Número 9">9</button>
+            <button onclick="append('*')" data-tooltip="Multiplicação">×</button>
+            <button onclick="append('Math.sqrt(')" data-tooltip="Raiz quadrada">√</button>
+
+            <!-- Terceira linha -->
+            <button onclick="append('4')" data-tooltip="Número 4">4</button>
+            <button onclick="append('5')" data-tooltip="Número 5">5</button>
+            <button onclick="append('6')" data-tooltip="Número 6">6</button>
+            <button onclick="append('-')" data-tooltip="Subtração">−</button>
+            <button onclick="append('Math.pow(')" data-tooltip="Potência">^</button>
+
+            <!-- Quarta linha -->
+            <button onclick="append('1')" data-tooltip="Número 1">1</button>
+            <button onclick="append('2')" data-tooltip="Número 2">2</button>
+            <button onclick="append('3')" data-tooltip="Número 3">3</button>
+            <button onclick="append('+')" data-tooltip="Adição">+</button>
+            <button onclick="append('.')">.</button>
+
+            <!-- Última linha -->
+            <button onclick="append('0')" data-tooltip="Número 0">0</button>
+            <button onclick="append('Math.sin(')" data-tooltip="Seno (em radianos)">sin</button>
+            <button onclick="append('Math.cos(')" data-tooltip="Cosseno (em radianos)">cos</button>
+            <button onclick="append('Math.tan(')" data-tooltip="Tangente (em radianos)">tan</button>
+            <button onclick="append('Math.log10(')" data-tooltip="Logaritmo base 10">log</button>
+
+            <!-- Botão de calcular -->
+            <button onclick="calculate()" class="equal" data-tooltip="Calcular">=</button>
+        </div>
+
+        <!-- Área que exibe o histórico de contas feitas -->
+        <div class="history" id="history"></div>
+    </div>
+
+    <!-- ==== FUNCIONALIDADES DA CALCULADORA ==== -->
+    <script>
+        const display = document.getElementById('display');
+        const history = document.getElementById('history');
+
+        // Adiciona texto ao visor
+        function append(val) {
+            if (display.textContent === '0' || display.textContent === 'Erro') {
+                display.textContent = val;
+            } else {
+                display.textContent += val;
+            }
+        }
+
+        // Limpa o visor
+        function clearDisplay() {
+            display.textContent = '0';
+        }
+
+        // Avalia a expressão digitada e mostra o resultado
+        function calculate() {
+            try {
+                const result = eval(display.textContent);
+                history.innerHTML += `<div>${display.textContent} = <strong>${result}</strong></div>`;
+                display.textContent = result;
+            } catch {
+                display.textContent = 'Erro';
+            }
+        }
+
+        // Troca o tema da calculadora e salva no localStorage
+        function changeTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            localStorage.setItem('calc-theme', themeName);
+        }
+
+        // Exporta o histórico como arquivo .csv
+        function exportCSV() {
+            let csv = 'Expressão,Resultado\n';
+            history.querySelectorAll('div').forEach(row => {
+                const [expr, res] = row.innerText.split('=');
+                csv += `"${expr.trim()}","${res.trim()}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'historico_calculadora.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Aplica o tema salvo no carregamento da página
+        window.addEventListener('load', () => {
+            const savedTheme = localStorage.getItem('calc-theme');
+            if (savedTheme) {
+                changeTheme(savedTheme);
+                document.querySelector('select').value = savedTheme;
+            }
+        });
+    </script>
+</body>
+
+</html>

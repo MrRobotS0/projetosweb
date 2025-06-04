@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relógio Mundial</title>
+
+    <!-- Bootstrap (estilo moderno e responsivo) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome (ícones visuais elegantes) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Luxon (manipulação de data/hora com fusos) -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
+
+    <style>
+        /* ======== ESTILOS GERAIS E TEMAS ======== */
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            transition: background 0.5s, color 0.5s;
+        }
+
+        /* Temas com gradientes e cores principais */
+        .theme-dark {
+            background: linear-gradient(to right, #1c1c1c, #2c3e50);
+            color: white;
+        }
+
+        .theme-light {
+            background: linear-gradient(to right, #ffffff, #e8e8e8);
+            color: #111;
+        }
+
+        .theme-neon {
+            background: linear-gradient(135deg, #000000, #0f0f0f);
+            color: #39ff14;
+        }
+
+        .theme-solarized {
+            background: linear-gradient(to right, #002b36, #073642);
+            color: #b58900;
+        }
+
+        .theme-cyber {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: #00ffff;
+        }
+
+        .theme-purple-night {
+            background: linear-gradient(to right, #2c003e, #12002f);
+            color: #c084fc;
+        }
+
+        /* ======== COMPONENTES ======== */
+
+        .clock-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Estilo adaptado por tema */
+        .theme-light .clock-box {
+            background: #fff;
+            color: #111;
+        }
+
+        .theme-neon .clock-box,
+        .theme-cyber .clock-box,
+        .theme-solarized .clock-box,
+        .theme-purple-night .clock-box {
+            background: #111;
+            border: 1px solid currentColor;
+        }
+
+        .time-display {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        /* ======== INPUT DE TIMER ======== */
+
+        .custom-input {
+            background-color: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .custom-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .custom-input:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+        }
+
+        .input-group-text {
+            color: rgba(255, 255, 255, 0.8);
+            background-color: transparent;
+        }
+
+        .custom-input-group .form-control,
+        .custom-input-group .input-group-text {
+            border-radius: 0.375rem;
+        }
+
+        /* ======== AJUSTES POR TEMA PARA INPUT ======== */
+        .theme-light .custom-input {
+            color: #111 !important;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-light .custom-input:focus {
+            background-color: rgba(255, 255, 255, 0.7);
+            color: #111 !important;
+            border-color: #0d6efd;
+            box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
+        }
+
+        .theme-light .custom-input::placeholder {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .theme-light .input-group-text {
+            color: #111;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+
+<body class="theme-dark">
+
+    <div class="container py-5">
+        <h1 class="text-center mb-4"><i class="fas fa-globe"></i> Relógio Mundial</h1>
+
+        <!-- Botão para alternar entre os temas -->
+        <div class="theme-toggle">
+            <button class="btn btn-outline-light" onclick="cycleTheme()">Alterar Tema</button>
+        </div>
+
+        <!-- Relógio Mundial (mostra horário em várias cidades) -->
+        <div class="section-title">Horário Atual em Várias Cidades</div>
+        <div class="row" id="world-clocks"></div>
+
+        <!-- Cronômetro com controles -->
+        <div class="section-title">Cronômetro</div>
+        <div class="clock-box text-center">
+            <div id="stopwatch" class="time-display">00:00:00</div>
+            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                <button class="btn btn-outline-success" onclick="startStopwatch()" data-bs-toggle="tooltip"
+                    title="Iniciar Cronômetro">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="btn btn-outline-warning" onclick="pauseStopwatch()" data-bs-toggle="tooltip"
+                    title="Pausar Cronômetro">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <button class="btn btn-outline-danger" onclick="resetStopwatch()" data-bs-toggle="tooltip"
+                    title="Zerar Cronômetro">
+                    <i class="fas fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Timer com entrada customizada e controles -->
+        <div class="section-title">Timer Regressivo</div>
+        <div class="clock-box text-center">
+            <div class="mb-4 w-50 mx-auto">
+                <label for="timerInput" class="form-label text-center d-block">Tempo do Timer (em minutos)</label>
+                <div class="input-group custom-input-group">
+                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                    <input type="number" class="form-control custom-input" id="timerInput" value="2" min="1" max="120"
+                        placeholder="Ex: 5" />
+                    <span class="input-group-text">min</span>
+                </div>
+            </div>
+
+            <div id="timer" class="time-display">02:00</div>
+            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                <button class="btn btn-outline-primary" onclick="startTimer()" data-bs-toggle="tooltip"
+                    title="Iniciar Timer">
+                    <i class="fas fa-hourglass-start"></i>
+                </button>
+                <button class="btn btn-outline-secondary" onclick="pauseTimer()" data-bs-toggle="tooltip"
+                    title="Pausar Timer">
+                    <i class="fas fa-pause-circle"></i>
+                </button>
+                <button class="btn btn-outline-danger" onclick="resetTimer()" data-bs-toggle="tooltip"
+                    title="Resetar Timer">
+                    <i class="fas fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts principais -->
+    <script>
+        const { DateTime } = luxon;
+
+        // Lista de cidades e seus fusos horários
+        const cities = [
+            { name: "São Paulo", zone: "America/Sao_Paulo" },
+            { name: "Nova York", zone: "America/New_York" },
+            { name: "Londres", zone: "Europe/London" },
+            { name: "Tóquio", zone: "Asia/Tokyo" },
+            { name: "Sydney", zone: "Australia/Sydney" },
+            { name: "Dubai", zone: "Asia/Dubai" }
+        ];
+
+        // Atualiza os relógios a cada segundo
+        function updateWorldClocks() {
+            const container = document.getElementById('world-clocks');
+            container.innerHTML = '';
+            cities.forEach(city => {
+                const dt = DateTime.now().setZone(city.zone);
+                container.innerHTML += `
+          <div class="col-md-4">
+            <div class="clock-box">
+              <h5>${city.name}</h5>
+              <div class="time-display">${dt.toFormat('HH:mm:ss')}</div>
+              <small>Fuso horário: ${dt.offsetNameShort} (UTC${dt.toFormat("Z")})</small>
+            </div>
+          </div>`;
+            });
+        }
+
+        setInterval(updateWorldClocks, 1000);
+        updateWorldClocks();
+
+        // Cronômetro (inicia, pausa, zera)
+        let stopwatchInterval, stopwatchTime = 0;
+
+        function startStopwatch() {
+            if (!stopwatchInterval) {
+                stopwatchInterval = setInterval(() => {
+                    stopwatchTime++;
+                    displayStopwatch();
+                }, 1000);
+            }
+        }
+
+        function pauseStopwatch() {
+            clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+        }
+
+        function resetStopwatch() {
+            pauseStopwatch();
+            stopwatchTime = 0;
+            displayStopwatch();
+        }
+
+        function displayStopwatch() {
+            const hrs = String(Math.floor(stopwatchTime / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((stopwatchTime % 3600) / 60)).padStart(2, '0');
+            const secs = String(stopwatchTime % 60).padStart(2, '0');
+            document.getElementById('stopwatch').textContent = `${hrs}:${mins}:${secs}`;
+        }
+
+        // Timer regressivo
+        let timerInterval, timerTime = 120;
+
+        function startTimer() {
+            const inputMinutes = parseInt(document.getElementById('timerInput').value) || 2;
+            if (!timerInterval) {
+                if (timerTime === 0) {
+                    timerTime = inputMinutes * 60;
+                }
+                timerInterval = setInterval(() => {
+                    if (timerTime > 0) {
+                        timerTime--;
+                        displayTimer();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        alert("⏰ O tempo acabou!");
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            const inputMinutes = parseInt(document.getElementById('timerInput').value) || 2;
+            timerTime = inputMinutes * 60;
+            displayTimer();
+        }
+
+        function displayTimer() {
+            const mins = String(Math.floor(timerTime / 60)).padStart(2, '0');
+            const secs = String(timerTime % 60).padStart(2, '0');
+            document.getElementById('timer').textContent = `${mins}:${secs}`;
+        }
+
+        resetTimer();
+
+        // Alternância de temas
+        const themes = ['theme-dark', 'theme-light', 'theme-neon', 'theme-solarized', 'theme-cyber', 'theme-purple-night'];
+        let currentThemeIndex = 0;
+
+        function cycleTheme() {
+            document.body.classList.remove(themes[currentThemeIndex]);
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            document.body.classList.add(themes[currentThemeIndex]);
+        }
+    </script>
+
+    <!-- Script do Bootstrap para tooltips -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Ativa os tooltips assim que a página carrega
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
+
+</body>
+
+</html>
