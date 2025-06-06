@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>🌟 Meus Projetos</title>
+  <title>Meus Projetos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Tailwind CSS -->
@@ -17,17 +17,17 @@
     }
 
     .card-glow {
-      box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.479);
       transition: all 0.4s ease;
     }
 
     .card-glow:hover {
-      box-shadow: 0 0 40px rgba(138, 43, 226, 0.9);
+      box-shadow: 0 0 40px rgba(255, 255, 255, 0.9);
       transform: scale(1.05);
     }
 
     /* 20 temas com gradientes diferentes */
-    .theme-0  { background: linear-gradient(to right, #0f0c29, #302b63, #24243e); }
+    .theme-0  { background: linear-gradient(to right, #000000, #5f0000, #c20000); }
     .theme-1  { background: linear-gradient(to right, #1e3c72, #2a5298); }
     .theme-2  { background: linear-gradient(to right, #8e2de2, #4a00e0); }
     .theme-3  { background: linear-gradient(to right, #fc466b, #3f5efb); }
@@ -84,25 +84,25 @@
     </a>
 
     <a href="mapa/mapa.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🌍 Mapa Mundi</h2>
+      <h2 class="text-2xl font-semibold mb-2">🌍 Clone Google Maps</h2>
       <p class="text-sm text-gray-300">Mapa Mundi que exibe temperatura.</p>
     </a>
 
-    <a href="jogovelha/jogovelha.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">💲 Jogo da Velha</h2>
-      <p class="text-sm text-gray-300">Jogo da velha web.</p>
+    <a href="siga/login.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
+      <h2 class="text-2xl font-semibold mb-2">🎓 Clone do Siga Fatec</h2>
+      <p class="text-sm text-gray-300">Clone do Siga estilizado com frameworks e bibliotecas.</p>
     </a>
 
   </div>
 
   <!-- Rodapé -->
   <footer class="mt-16 text-gray-300 text-sm text-center">
-    © 2025 - Desenvolvido por Você
+    © 2025 - Desenvolvido por Belinelo
   </footer>
 
   <!-- Script de troca de tema -->
   <script>
-    let currentTheme = 0;
+    let currentTheme = 6;
     const totalThemes = 20;
 
     function nextTheme() {
