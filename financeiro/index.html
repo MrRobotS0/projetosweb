@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestão Financeira</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- AOS para animações ao scroll -->
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <!-- FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    /* Scrollbar custom para listas */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Ocultar por padrão */
+    .hidden { display: none; }
+    /* Tema dark para Tailwind */
+    .dark body {
+      background-color: #1f2937;
+      color: #f3f4f6;
+    }
+    .dark table thead {
+      background-color: #374151;
+    }
+    .dark .bg-white {
+      background-color: #374151 !important;
+    }
+    .dark .bg-gray-50 {
+      background-color: #4b5563 !important;
+    }
+    .dark .bg-gray-100 {
+      background-color: #1f2937 !important;
+    }
+    .dark .text-gray-800 {
+      color: #f3f4f6 !important;
+    }
+    .dark .text-gray-500 {
+      color: #d1d5db !important;
+    }
+    .dark .border-gray-300 {
+      border-color: #6b7280 !important;
+    }
+    .dark .border-gray-50 {
+      border-color: #4b5563 !important;
+    }
+    .dark input, .dark select {
+      background-color: #4b5563 !important;
+      color: #f3f4f6 !important;
+      border-color: #6b7280 !important;
+    }
+    .dark .shadow-lg {
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5) !important;
+    }
+    /* Header gradient */
+    header {
+      background: linear-gradient(90deg, #4f46e5, #3b82f6);
+    }
+    /* Botão flutuante de adicionar transação */
+    #btnAddFloating {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 1.5rem;
+      background: #6366f1;
+      color: white;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      transition: background 0.3s, transform 0.2s;
+    }
+    #btnAddFloating:hover {
+      background: #4f46e5;
+      transform: scale(1.1);
+    }
+    /* Modal de transação */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Animação de fade-in para modal */
+    .fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- Header -->
+  <header class="shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-white flex items-center" data-aos="fade-down">
+        <i class="fas fa-wallet mr-2 animate-pulse"></i> Minha Finanças
+      </h1>
+      <!-- Botão alternar tema -->
+      <button id="btnTheme" class="p-2 rounded-md hover:bg-white/20 transition" title="Alternar tema" data-aos="fade-down" data-aos-delay="100">
+        <i id="iconTheme" class="fas fa-moon text-white text-xl"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <!-- Seção Resumo -->
+    <section id="resumo" class="grid grid-cols-1 sm:grid-cols-3 gap-4" data-aos="fade-up">
+      <div class="bg-white rounded-lg shadow p-4 flex items-center hover:scale-105 transform transition">
+        <div class="p-3 bg-green-100 text-green-600 rounded-full mr-4 animate-bounce">
+          <i class="fas fa-arrow-down"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-medium text-gray-500">Receitas</h2>
+          <p id="totalReceitas" class="text-xl font-bold">R$ 0,00</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4 flex items-center hover:scale-105 transform transition" data-aos="fade-up" data-aos-delay="50">
+        <div class="p-3 bg-red-100 text-red-600 rounded-full mr-4 animate-bounce">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-medium text-gray-500">Despesas</h2>
+          <p id="totalDespesas" class="text-xl font-bold">R$ 0,00</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4 flex items-center hover:scale-105 transform transition" data-aos="fade-up" data-aos-delay="100">
+        <div class="p-3 bg-indigo-100 text-indigo-600 rounded-full mr-4 animate-bounce">
+          <i class="fas fa-balance-scale"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-medium text-gray-500">Saldo</h2>
+          <p id="saldo" class="text-xl font-bold">R$ 0,00</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção: Gerenciar Categorias -->
+    <section class="bg-white rounded-lg shadow p-6" data-aos="fade-right">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Categorias</h2>
+        <button id="btnAddCategoria" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
+          + Nova Categoria
+        </button>
+      </div>
+      <ul id="listaCategorias" class="space-y-2"></ul>
+    </section>
+
+    <!-- Seção: Gerenciar Orçamentos -->
+    <section class="bg-white rounded-lg shadow p-6" data-aos="fade-left">
+      <h2 class="text-lg font-semibold mb-4">Orçamentos por Categoria</h2>
+      <ul id="listaOrcamentos" class="space-y-2"></ul>
+    </section>
+
+    <!-- Formulário de nova transação em modal via botão flutuante -->
+    <button id="btnAddFloating" title="Adicionar transação" data-aos="zoom-in">
+      <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Modal de nova transação -->
+    <div id="modalTransacao" class="modal-backdrop hidden">
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative fade-in">
+        <button id="closeModal" class="absolute top-3 right-3 text-gray-600 hover:text-red-600">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+        <h3 class="text-xl font-semibold mb-4">Nova Transação</h3>
+        <form id="formTransacao" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="tipo">Tipo</label>
+            <select id="tipo" required class="w-full border-gray-300 rounded-md">
+              <option value="receita">Receita</option>
+              <option value="despesa">Despesa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="categoria">Categoria</label>
+            <select id="categoria" required class="w-full border-gray-300 rounded-md"></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="valor">Valor (R$)</label>
+            <input id="valor" type="number" step="0.01" min="0.01" required
+                   class="w-full border-gray-300 rounded-md" placeholder="0,00">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="data">Data</label>
+            <input id="data" type="date" required class="w-full border-gray-300 rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="descricao">Descrição</label>
+            <input id="descricao" type="text" class="w-full border-gray-300 rounded-md" placeholder="Descrição">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="recorrencia">Recorrência</label>
+            <select id="recorrencia" class="w-full border-gray-300 rounded-md">
+              <option value="none">Nenhuma</option>
+              <option value="monthly">Mensal</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-4 text-right">
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+              Adicionar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <section class="bg-white rounded-lg shadow p-6" data-aos="fade-up">
+      <h2 class="text-lg font-semibold mb-4">Filtrar Transações</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input id="filtroBusca" type="text" placeholder="Buscar descrição..." class="w-full border-gray-300 rounded-md px-3 py-2">
+        <input id="filtroDataInicio" type="date" class="w-full border-gray-300 rounded-md px-3 py-2">
+        <input id="filtroDataFim" type="date" class="w-full border-gray-300 rounded-md px-3 py-2">
+      </div>
+    </section>
+
+    <!-- Lista de transações -->
+    <section class="bg-white rounded-lg shadow p-6" data-aos="fade-up">
+      <h2 class="text-lg font-semibold mb-4">Transações</h2>
+      <div class="overflow-x-auto no-scrollbar">
+        <table class="w-full table-auto border-collapse">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-sm">Data</th>
+              <th class="px-4 py-2 text-left text-sm">Descrição</th>
+              <th class="px-4 py-2 text-left text-sm">Categoria</th>
+              <th class="px-4 py-2 text-right text-sm">Valor</th>
+              <th class="px-4 py-2 text-center text-sm">Recorrência</th>
+              <th class="px-4 py-2 text-center text-sm">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="listaTransacoes">
+            <!-- Linhas geradas via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Relatórios e Gráficos -->
+    <section class="bg-white rounded-lg shadow p-6 grid grid-cols-1 lg:grid-cols-2 gap-6" data-aos="fade-up">
+      <div>
+        <h2 class="text-lg font-semibold mb-4">Visão por Categoria (Despesas)</h2>
+        <canvas id="chartCategorias"></canvas>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold mb-4">Evolução do Saldo</h2>
+        <div class="flex items-center gap-2 mb-4">
+          <label class="text-sm">Início:</label>
+          <input id="relDataInicio" type="date" class="border-gray-300 rounded-md px-2 py-1">
+          <label class="text-sm">Fim:</label>
+          <input id="relDataFim" type="date" class="border-gray-300 rounded-md px-2 py-1">
+        </div>
+        <canvas id="chartSaldo"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mt-6 mb-4 text-center text-sm text-gray-500" data-aos="fade-up">
+    &copy; 2025 - Belinelo
+  </footer>
+
+  <script>
+    // Inicia AOS
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ once: true, duration: 600 });
+      carregarEstado();
+      initCategoriasUI();
+      initOrcamentosUI();
+      initFormTransacao();
+      initFiltros();
+      processarRecorrencias();
+      renderTudo();
+      initRelatorioDateDefaults();
+      initThemeToggle();
+      initModalHandlers();
+    });
+
+    // --- Helpers de formatação ---
+    function formatarData(d) {
+      return d.toLocaleDateString('pt-BR');
+    }
+    function formatarValor(v, tipo) {
+      const s = v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+      return tipo==='despesa' ? `- ${s}` : `+ ${s}`;
+    }
+    function parseDateInput(val) {
+      return val ? new Date(val + 'T00:00:00') : null;
+    }
+
+    // --- LocalStorage keys ---
+    const LS_CATEGORIAS = 'fin_categorias';
+    const LS_TRANSACOES = 'fin_transacoes';
+    const LS_ORCAMENTOS = 'fin_orcamentos';
+    const LS_RECORRENCIAS = 'fin_recorrencias';
+
+    // --- Estado em memória ---
+    let categorias = [];
+    let transacoes = [];
+    let orcamentos = {};      // { categoria: número }
+    let recorrencias = [];    // [{ id, tipo, categoria, valor, descricao, day }]
+
+    // --- Carregar/Salvar estado ---
+    function carregarEstado() {
+      categorias = JSON.parse(localStorage.getItem(LS_CATEGORIAS) || '[]');
+      if (categorias.length === 0) {
+        categorias = ['Salário','Freelance','Alimentação','Transporte','Lazer','Saúde','Educação','Outros'];
+      }
+      transacoes = JSON.parse(localStorage.getItem(LS_TRANSACOES) || '[]').map(t => ({
+        ...t,
+        data: new Date(t.data),
+      }));
+      orcamentos = JSON.parse(localStorage.getItem(LS_ORCAMENTOS) || '{}');
+      recorrencias = JSON.parse(localStorage.getItem(LS_RECORRENCIAS) || '[]');
+    }
+    function salvarEstado() {
+      localStorage.setItem(LS_CATEGORIAS, JSON.stringify(categorias));
+      localStorage.setItem(LS_TRANSACOES, JSON.stringify(transacoes.map(t => ({
+        ...t,
+        data: t.data.toISOString().slice(0,10)
+      }))));
+      localStorage.setItem(LS_ORCAMENTOS, JSON.stringify(orcamentos));
+      localStorage.setItem(LS_RECORRENCIAS, JSON.stringify(recorrencias));
+    }
+
+    // --- Categorias UI ---
+    const listaCategoriasEl = document.getElementById('listaCategorias');
+    const selectCategoriaEl = document.getElementById('categoria');
+    function initCategoriasUI() {
+      renderCategoriasList();
+      renderCategoriaOptions();
+    }
+    function renderCategoriasList() {
+      listaCategoriasEl.innerHTML = '';
+      categorias.forEach((cat, idx) => {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center bg-gray-50 p-2 rounded hover:bg-indigo-50 transition';
+        li.innerHTML = `
+          <span>${cat}</span>
+          <div class="flex gap-2">
+            <button data-idx="${idx}" class="btn-edit-cat text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+            <button data-idx="${idx}" class="btn-del-cat text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+          </div>`;
+        listaCategoriasEl.appendChild(li);
+      });
+      // Handlers
+      document.querySelectorAll('.btn-del-cat').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          const cat = categorias[idx];
+          if (confirm(`Remover categoria "${cat}"? Isso afetará transações existentes.`)) {
+            categorias.splice(idx,1);
+            transacoes.forEach(t => {
+              if (t.categoria === cat) t.categoria = 'Outros';
+            });
+            delete orcamentos[cat];
+            salvarEstado();
+            initCategoriasUI();
+            renderTudo();
+          }
+        });
+      });
+      document.querySelectorAll('.btn-edit-cat').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          const cat = categorias[idx];
+          const novo = prompt('Editar categoria:', cat);
+          if (novo && novo.trim()) {
+            const old = cat;
+            categorias[idx] = novo.trim();
+            transacoes.forEach(t => {
+              if (t.categoria === old) t.categoria = novo.trim();
+            });
+            if (orcamentos[old] != null) {
+              orcamentos[novo.trim()] = orcamentos[old];
+              delete orcamentos[old];
+            }
+            salvarEstado();
+            initCategoriasUI();
+            renderTudo();
+          }
+        });
+      });
+    }
+    function renderCategoriaOptions() {
+      selectCategoriaEl.innerHTML = '';
+      categorias.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        selectCategoriaEl.append(opt);
+      });
+    }
+
+    // --- Orçamentos UI ---
+    const listaOrcamentosEl = document.getElementById('listaOrcamentos');
+    function initOrcamentosUI() {
+      renderOrcamentosList();
+    }
+    function renderOrcamentosList() {
+      listaOrcamentosEl.innerHTML = '';
+      categorias.forEach(cat => {
+        const li = document.createElement('li');
+        const val = orcamentos[cat] != null ? orcamentos[cat] : '';
+        li.className = 'flex justify-between items-center bg-gray-50 p-2 rounded hover:bg-indigo-50 transition';
+        li.innerHTML = `
+          <span>${cat}</span>
+          <input type="number" min="0" step="0.01" data-cat="${cat}" value="${val}"
+                 class="w-24 border-gray-300 rounded px-2 py-1 text-right" placeholder="—">`;
+        listaOrcamentosEl.append(li);
+      });
+      document.querySelectorAll('#listaOrcamentos input').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const cat = inp.dataset.cat;
+          const v = parseFloat(inp.value);
+          if (!isNaN(v) && v >= 0) {
+            orcamentos[cat] = v;
+          } else {
+            delete orcamentos[cat];
+          }
+          salvarEstado();
+          renderResumo();
+        });
+      });
+    }
+
+    // --- Modal handlers ---
+    function initModalHandlers() {
+      const btnAdd = document.getElementById('btnAddFloating');
+      const modal = document.getElementById('modalTransacao');
+      const close = document.getElementById('closeModal');
+      btnAdd.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+      });
+      close.addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
+      // fechar modal ao clicar fora do conteúdo
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+    }
+
+    // --- Formulário de Transação ---
+    const form = document.getElementById('formTransacao');
+    function initFormTransacao() {
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const tipo = form.tipo.value;
+        const categoria = form.categoria.value;
+        const valor = parseFloat(form.valor.value);
+        const data = parseDateInput(form.data.value);
+        const descricao = form.descricao.value.trim();
+        const recorr = form.recorrencia.value;
+        if (isNaN(valor) || !data) return;
+        const id = Date.now();
+        const trans = { id, tipo, categoria, valor, data, descricao, recorrenciaId: null };
+        transacoes.push(trans);
+        if (recorr === 'monthly') {
+          const day = data.getDate();
+          const rid = 'r_' + id;
+          recorrencias.push({ id: rid, tipo, categoria, valor, descricao, day });
+          trans.recorrenciaId = rid;
+        }
+        salvarEstado();
+        form.reset();
+        document.getElementById('modalTransacao').classList.add('hidden');
+        processarRecorrencias();
+        renderTudo();
+      });
+      form.data.value = new Date().toISOString().slice(0,10);
+    }
+
+    // --- Recorrências ---
+    function processarRecorrencias() {
+      const hoje = new Date();
+      const mes = hoje.getMonth();
+      const ano = hoje.getFullYear();
+      recorrencias.forEach(r => {
+        const exists = transacoes.some(t =>
+          t.recorrenciaId === r.id &&
+          t.data.getMonth() === mes &&
+          t.data.getFullYear() === ano
+        );
+        if (!exists) {
+          let day = r.day;
+          const diasNoMes = new Date(ano, mes+1, 0).getDate();
+          if (day > diasNoMes) day = diasNoMes;
+          const dataRec = new Date(ano, mes, day);
+          const id = Date.now() + Math.random();
+          transacoes.push({
+            id,
+            tipo: r.tipo,
+            categoria: r.categoria,
+            valor: r.valor,
+            descricao: r.descricao + ' (recorrente)',
+            data: dataRec,
+            recorrenciaId: r.id
+          });
+        }
+      });
+      salvarEstado();
+    }
+
+    // --- Filtragem ---
+    const filtroBusca = document.getElementById('filtroBusca');
+    const filtroDataInicio = document.getElementById('filtroDataInicio');
+    const filtroDataFim = document.getElementById('filtroDataFim');
+    function initFiltros() {
+      filtroBusca.addEventListener('input', renderLista);
+      filtroDataInicio.addEventListener('change', renderLista);
+      filtroDataFim.addEventListener('change', renderLista);
+    }
+    function filtrarTransacoes(arr) {
+      let res = arr;
+      const termo = filtroBusca.value.trim().toLowerCase();
+      if (termo) {
+        res = res.filter(t => t.descricao.toLowerCase().includes(termo));
+      }
+      const di = parseDateInput(filtroDataInicio.value);
+      const df = parseDateInput(filtroDataFim.value);
+      if (di) res = res.filter(t => t.data >= di);
+      if (df) res = res.filter(t => t.data <= df);
+      return res;
+    }
+
+    // --- Render Lista ---
+    const listaEl = document.getElementById('listaTransacoes');
+    function renderLista() {
+      listaEl.innerHTML = '';
+      let arr = [...transacoes];
+      arr.sort((a,b) => b.data - a.data);
+      arr = filtrarTransacoes(arr);
+      arr.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-t hover:bg-indigo-50 transition';
+        tr.innerHTML = `
+          <td class="px-4 py-2 text-sm">${formatarData(t.data)}</td>
+          <td class="px-4 py-2 text-sm">${t.descricao||'-'}</td>
+          <td class="px-4 py-2 text-sm">${t.categoria}</td>
+          <td class="px-4 py-2 text-right text-sm ${t.tipo==='despesa'?'text-red-600':'text-green-600'}">
+            ${formatarValor(t.valor, t.tipo)}
+          </td>
+          <td class="px-4 py-2 text-center text-sm">${t.recorrenciaId ? 'Mensal' : '-'}</td>
+          <td class="px-4 py-2 text-center">
+            <button data-id="${t.id}" class="btn-edit text-yellow-500 hover:text-yellow-700 mr-2"><i class="fas fa-edit"></i></button>
+            <button data-id="${t.id}" class="btn-del text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+          </td>`;
+        listaEl.appendChild(tr);
+      });
+      document.querySelectorAll('.btn-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          if (confirm('Excluir transação?')) {
+            transacoes = transacoes.filter(x=>x.id!==id);
+            salvarEstado();
+            renderTudo();
+          }
+        });
+      });
+      document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          const t = transacoes.find(x=>x.id===id);
+          if (!t) return;
+          form.tipo.value = t.tipo;
+          form.categoria.value = t.categoria;
+          form.valor.value = t.valor;
+          form.data.value = t.data.toISOString().slice(0,10);
+          form.descricao.value = t.descricao.replace(' (recorrente)','');
+          form.recorrencia.value = t.recorrenciaId ? 'monthly' : 'none';
+          transacoes = transacoes.filter(x=>x.id!==id);
+          if (t.recorrenciaId) {
+            recorrencias = recorrencias.filter(r=>r.id!==t.recorrenciaId);
+          }
+          salvarEstado();
+          document.getElementById('modalTransacao').classList.remove('hidden');
+          renderTudo();
+        });
+      });
+    }
+
+    // --- Resumo e Alertas ---
+    const elReceitas = document.getElementById('totalReceitas');
+    const elDespesas = document.getElementById('totalDespesas');
+    const elSaldo = document.getElementById('saldo');
+    function renderResumo() {
+      const totalRec = transacoes.filter(t=>t.tipo==='receita').reduce((s,t)=>s+t.valor,0);
+      const totalDesp = transacoes.filter(t=>t.tipo==='despesa').reduce((s,t)=>s+t.valor,0);
+      const saldo = totalRec - totalDesp;
+      elReceitas.textContent = totalRec.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+      elDespesas.textContent = totalDesp.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+      elSaldo.textContent = saldo.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+      // Alertas de orçamento
+      const avisos = [];
+      Object.entries(orcamentos).forEach(([cat,orcam]) => {
+        const gasto = transacoes.filter(t=>t.tipo==='despesa'&&t.categoria===cat)
+                      .reduce((s,t)=>s+t.valor,0);
+        if (gasto > orcam) {
+          avisos.push(`Categoria "${cat}" excedeu o orçamento: R$ ${gasto.toFixed(2)} / R$ ${orcam.toFixed(2)}`);
+        }
+      });
+      if (avisos.length) {
+        avisos.forEach(msg => console.warn(msg));
+        if (!document.getElementById('alertasOrcamento')) {
+          const sec = document.createElement('div');
+          sec.id = 'alertasOrcamento';
+          sec.className = 'fixed bottom-4 right-4 bg-red-500 text-white p-3 rounded shadow-lg animate-pulse';
+          sec.innerHTML = `<ul class="text-sm space-y-1">${avisos.map(a=>`<li>${a}</li>`).join('')}</ul>
+                           <button id="closeAlert" class="mt-2 underline">Fechar</button>`;
+          document.body.appendChild(sec);
+          document.getElementById('closeAlert').addEventListener('click', ()=>{
+            sec.remove();
+          });
+        }
+      } else {
+        const ex = document.getElementById('alertasOrcamento');
+        if (ex) ex.remove();
+      }
+    }
+
+    // --- Gráficos ---
+    let chartCat = null, chartSaldo = null;
+    function renderChartCategorias() {
+      const ctx = document.getElementById('chartCategorias').getContext('2d');
+      const dados = {};
+      transacoes.filter(t=>t.tipo==='despesa').forEach(t=>{
+        dados[t.categoria] = (dados[t.categoria]||0) + t.valor;
+      });
+      const labels = Object.keys(dados);
+      const values = labels.map(l=>dados[l]);
+      const bgColors = labels.map((_,i)=>`hsl(${i*60%360},70%,50%)`);
+      if (chartCat) chartCat.destroy();
+      chartCat = new Chart(ctx, {
+        type: 'pie',
+        data: { labels, datasets:[{ data: values, backgroundColor: bgColors }] },
+        options: {
+          plugins:{
+            legend:{
+              position:'bottom',
+              labels:{ color: getComputedStyle(document.body).color }
+            }
+          }
+        }
+      });
+    }
+    function renderChartSaldo() {
+      const ctx = document.getElementById('chartSaldo').getContext('2d');
+      const di = parseDateInput(document.getElementById('relDataInicio').value);
+      const df = parseDateInput(document.getElementById('relDataFim').value);
+      if (!di || !df || di > df) return;
+      const dates = [];
+      const cur = new Date(di);
+      while (cur <= df) {
+        dates.push(new Date(cur));
+        cur.setDate(cur.getDate()+1);
+      }
+      const dataPoints = dates.map(d => {
+        const s = transacoes.filter(t=>t.data <= d)
+                  .reduce((sum,t)=>(t.tipo==='receita'?sum+t.valor:sum-t.valor),0);
+        return s;
+      });
+      if (chartSaldo) chartSaldo.destroy();
+      chartSaldo = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates.map(d=>formatarData(d)),
+          datasets: [{ label:'Saldo', data: dataPoints, borderColor:'#00d8ff', backgroundColor:'rgba(0,216,255,0.2)', tension:0.3 }]
+        },
+        options: {
+          scales:{
+            x:{ ticks:{ color: getComputedStyle(document.body).color, maxRotation:90, minRotation:45 } },
+            y:{ ticks:{ color: getComputedStyle(document.body).color } }
+          },
+          plugins:{
+            legend:{ labels:{ color: getComputedStyle(document.body).color } }
+          }
+        }
+      });
+    }
+    function initRelatorioDateDefaults() {
+      const hoje = new Date().toISOString().slice(0,10);
+      document.getElementById('relDataFim').value = hoje;
+      const inicioMes = new Date(); inicioMes.setDate(1);
+      document.getElementById('relDataInicio').value = inicioMes.toISOString().slice(0,10);
+      document.getElementById('relDataInicio').addEventListener('change', renderChartSaldo);
+      document.getElementById('relDataFim').addEventListener('change', renderChartSaldo);
+    }
+
+    // --- Tema claro/escuro ---
+    function initThemeToggle() {
+      const btn = document.getElementById('btnTheme');
+      const icon = document.getElementById('iconTheme');
+      function aplicarTema(tema) {
+        if (tema === 'dark') {
+          document.documentElement.classList.add('dark');
+          icon.className = 'fas fa-sun text-xl';
+        } else {
+          document.documentElement.classList.remove('dark');
+          icon.className = 'fas fa-moon text-xl';
+        }
+        localStorage.setItem('tema', tema);
+        renderChartCategorias();
+        renderChartSaldo();
+      }
+      btn.addEventListener('click', () => {
+        const atual = localStorage.getItem('tema') || 'light';
+        aplicarTema(atual === 'light' ? 'dark' : 'light');
+      });
+      const temaSalvo = localStorage.getItem('tema') || 'light';
+      aplicarTema(temaSalvo);
+    }
+
+    // --- Render geral ---
+    function renderTudo() {
+      renderCategoriasList();
+      renderCategoriaOptions();
+      renderOrcamentosList();
+      renderLista();
+      renderResumo();
+      renderChartCategorias();
+      renderChartSaldo();
+    }
+  </script>
+</body>
+</html>
