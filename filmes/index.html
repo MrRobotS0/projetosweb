@@ -1,173 +1,393 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-
+<html lang="pt-BR" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Netflix Clone</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-    <style>
-        body {
-            background-color: #141414;
-            color: #fff;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Netflix</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- AOS para animações -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <!-- FontAwesome para ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      background-color: #141414;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    header {
+      backdrop-filter: blur(10px);
+      background-color: rgba(20, 20, 20, 0.7);
+      transition: background-color 0.3s;
+    }
+    header.scrolled {
+      background-color: rgba(20, 20, 20, 0.9);
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    /* Row scroll snapping */
+    .movie-row {
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .movie-card {
+      scroll-snap-align: center;
+    }
+    /* Overlay hover */
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .movie-card:hover .card-overlay {
+      opacity: 1;
+    }
+    /* Scroll arrow buttons */
+    .scroll-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(20,20,20,0.6);
+      width: 2.5rem;
+      height: 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: background 0.3s;
+    }
+    .scroll-btn:hover {
+      background: rgba(20,20,20,0.9);
+    }
+    .scroll-btn.left { left: 0.5rem; }
+    .scroll-btn.right { right: 0.5rem; }
+    /* Search suggestions */
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(20,20,20,0.9);
+      backdrop-filter: blur(5px);
+      border: 1px solid #333;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 50;
+    }
+    .suggestion-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .suggestion-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+  </style>
 </head>
-
-<body class="font-sans" onload="AOS.init()">
-    <header class="px-6 py-4 bg-black flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-3xl font-bold text-red-600">NETFLIX</h1>
-        <input id="searchInput" type="text" placeholder="Buscar..."
-            class="bg-gray-800 text-white px-4 py-2 rounded-lg w-64">
-    </header>
-
-    <section id="heroBanner" class="relative w-full h-[500px] text-white flex items-end p-6 bg-black overflow-hidden">
-        <div class="absolute inset-0 bg-center bg-cover brightness-50" id="heroBackground"></div>
-        <div class="z-10 space-y-4 max-w-xl">
-            <h2 id="heroTitle" class="text-4xl font-bold"></h2>
-            <p id="heroOverview" class="text-sm text-gray-200 line-clamp-4"></p>
-            <div class="flex gap-4">
-                <button class="bg-white text-black px-4 py-2 rounded hover:bg-gray-300 transition">Assistir</button>
-                <button id="heroDetails"
-                    class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">Detalhes</button>
-            </div>
-        </div>
-    </section>
-
-
-
-    <div class="overflow-x-auto px-6 py-2 scrollbar-hide">
-        <div class="flex gap-3 min-w-max" id="genreFilters"></div>
+<body onload="AOS.init()">
+  <!-- Header -->
+  <header id="header" class="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-red-600 cursor-pointer">NETFLIX</h1>
+    <div class="relative">
+      <input id="searchInput" type="text" placeholder="Buscar..."
+        class="bg-gray-800 text-white px-4 py-2 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-red-600" />
+      <div id="suggestions" class="suggestions hidden"></div>
     </div>
+  </header>
 
-    <main class="p-6 space-y-10">
-        <section id="favoritesSection" data-aos="fade-up" class="hidden">
-            <h2 class="text-2xl font-semibold mb-3">⭐ Favoritos</h2>
-            <div id="favoritesRow" class="flex overflow-x-auto gap-4 scrollbar-hide"></div>
-        </section>
+  <!-- Hero Banner -->
+  <section id="heroBanner" class="relative w-full h-[500px] text-white flex items-end p-6 mt-16 overflow-hidden">
+    <div id="heroBackground" class="absolute inset-0 bg-center bg-cover brightness-50"></div>
+    <div class="z-10 space-y-4 max-w-xl" data-aos="fade-up">
+      <h2 id="heroTitle" class="text-4xl font-bold"></h2>
+      <p id="heroOverview" class="text-sm text-gray-200 line-clamp-4"></p>
+      <div class="flex gap-4">
+        <button id="btnPlay" class="bg-white text-black px-4 py-2 rounded hover:bg-gray-300 transition flex items-center gap-2">
+          <i class="fas fa-play"></i> Assistir
+        </button>
+        <button id="heroDetails" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition flex items-center gap-2">
+          <i class="fas fa-info-circle"></i> Detalhes
+        </button>
+      </div>
+    </div>
+  </section>
 
-        <section data-aos="fade-up">
-            <h2 class="text-2xl font-semibold mb-3">Filmes</h2>
-            <div id="movieRow" class="flex overflow-x-auto gap-4 scrollbar-hide"></div>
-        </section>
-    </main>
+  <!-- Genre Filters -->
+  <div class="overflow-x-auto px-6 py-4 scrollbar-hide">
+    <div id="genreFilters" class="flex gap-3 min-w-max"></div>
+  </div>
 
-    <script>
-        const API_KEY = 'fb0021679c70d3e76017cbc60ac656c6';
-        const IMG_PATH = 'https://image.tmdb.org/t/p/w500';
-        const BACKDROP_PATH = 'https://image.tmdb.org/t/p/original';
-        const genresAPI = 'https://api.themoviedb.org/3/genre/movie/list?api_key=' + API_KEY + '&language=pt-BR';
+  <!-- Movie Sections -->
+  <main class="space-y-16 px-6 pb-10">
+    <section id="popularSection" data-aos="fade-up">
+      <h2 class="text-2xl font-semibold mb-3">Popular</h2>
+      <div class="relative">
+        <div class="scroll-btn left hidden" data-target="popularRow"><i class="fas fa-chevron-left text-xl text-white"></i></div>
+        <div id="popularRow" class="movie-row flex overflow-x-auto gap-4 scrollbar-hide py-2"></div>
+        <div class="scroll-btn right hidden" data-target="popularRow"><i class="fas fa-chevron-right text-xl text-white"></i></div>
+      </div>
+    </section>
+    <section id="topRatedSection" data-aos="fade-up">
+      <h2 class="text-2xl font-semibold mb-3">Mais Bem Avaliados</h2>
+      <div class="relative">
+        <div class="scroll-btn left hidden" data-target="topRatedRow"><i class="fas fa-chevron-left text-xl text-white"></i></div>
+        <div id="topRatedRow" class="movie-row flex overflow-x-auto gap-4 scrollbar-hide py-2"></div>
+        <div class="scroll-btn right hidden" data-target="topRatedRow"><i class="fas fa-chevron-right text-xl text-white"></i></div>
+      </div>
+    </section>
+    <section id="upcomingSection" data-aos="fade-up">
+      <h2 class="text-2xl font-semibold mb-3">Em Breve</h2>
+      <div class="relative">
+        <div class="scroll-btn left hidden" data-target="upcomingRow"><i class="fas fa-chevron-left text-xl text-white"></i></div>
+        <div id="upcomingRow" class="movie-row flex overflow-x-auto gap-4 scrollbar-hide py-2"></div>
+        <div class="scroll-btn right hidden" data-target="upcomingRow"><i class="fas fa-chevron-right text-xl text-white"></i></div>
+      </div>
+    </section>
+    <section id="favoritesSection" data-aos="fade-up" class="hidden">
+      <h2 class="text-2xl font-semibold mb-3">⭐ Favoritos</h2>
+      <div class="relative">
+        <div class="scroll-btn left hidden" data-target="favoritesRow"><i class="fas fa-chevron-left text-xl text-white"></i></div>
+        <div id="favoritesRow" class="movie-row flex overflow-x-auto gap-4 scrollbar-hide py-2"></div>
+        <div class="scroll-btn right hidden" data-target="favoritesRow"><i class="fas fa-chevron-right text-xl text-white"></i></div>
+      </div>
+    </section>
+  </main>
 
-        fetch(genresAPI)
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('genreFilters');
-                data.genres.forEach(genre => {
-                    const btn = document.createElement('button');
-                    btn.textContent = genre.name;
-                    btn.className = 'bg-gray-800 px-4 py-1 rounded-full hover:bg-red-600 transition text-sm';
-                    btn.onclick = () => carregarPorGenero(genre.id);
-                    container.appendChild(btn);
-                });
-            });
+  <!-- Script -->
+  <script>
+    const API_KEY = 'fb0021679c70d3e76017cbc60ac656c6';
+    const IMG_PATH = 'https://image.tmdb.org/t/p/w500';
+    const BACKDROP_PATH = 'https://image.tmdb.org/t/p/original';
 
-        function carregarPorGenero(genreId) {
-            fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&language=pt-BR`)
-                .then(res => res.json())
-                .then(data => renderMovies('movieRow', data.results));
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 600, once: true });
+      handleScrollHeader();
+      window.addEventListener('scroll', handleScrollHeader);
+
+      initHero();
+      loadSection('movie/popular', 'popularRow');
+      loadSection('movie/top_rated', 'topRatedRow');
+      loadSection('movie/upcoming', 'upcomingRow');
+      renderFavorites();
+
+      fetchGenres();
+      setupSearch();
+      setupScrollButtons();
+    });
+
+    function handleScrollHeader() {
+      const header = document.getElementById('header');
+      if (window.scrollY > 50) header.classList.add('scrolled');
+      else header.classList.remove('scrolled');
+    }
+
+    function initHero() {
+      fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=pt-BR`)
+        .then(res => res.json())
+        .then(data => {
+          const destaque = data.results[Math.floor(Math.random() * data.results.length)];
+          if (!destaque) return;
+          document.getElementById('heroBackground').style.backgroundImage = `url(${BACKDROP_PATH + destaque.backdrop_path})`;
+          document.getElementById('heroTitle').textContent = destaque.title;
+          document.getElementById('heroOverview').textContent = destaque.overview;
+          document.getElementById('btnPlay').onclick = () => {
+            // implementar lógica de reprodução ou navegação de trailer
+            window.open(`https://www.themoviedb.org/movie/${destaque.id}`, '_blank');
+          };
+          document.getElementById('heroDetails').onclick = () => {
+            window.location.href = `detalhes.html?id=${destaque.id}&type=movie`;
+          };
+        });
+    }
+
+    function fetchGenres() {
+      fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=pt-BR`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('genreFilters');
+          data.genres.forEach(genre => {
+            const btn = document.createElement('button');
+            btn.textContent = genre.name;
+            btn.className = 'bg-gray-800 px-4 py-1 rounded-full hover:bg-red-600 transition text-sm whitespace-nowrap';
+            btn.onclick = () => carregarPorGenero(genre.id);
+            container.appendChild(btn);
+          });
+        });
+    }
+
+    function loadSection(endpoint, rowId) {
+      fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${API_KEY}&language=pt-BR`)
+        .then(res => res.json())
+        .then(data => renderMovies(rowId, data.results));
+    }
+
+    function carregarPorGenero(genreId) {
+      loadSection(`discover/movie?with_genres=${genreId}`, 'movieRowTemp');
+      // exibe resultados em modal ou substitui seção? Aqui substituímos popularRow:
+      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&language=pt-BR`)
+        .then(res => res.json())
+        .then(data => renderMovies('popularRow', data.results));
+    }
+
+    function renderMovies(containerId, movies, isFavorites = false) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      if (isFavorites) {
+        const section = document.getElementById('favoritesSection');
+        if (movies.length === 0) {
+          section.classList.add('hidden');
+        } else {
+          section.classList.remove('hidden');
         }
-
-        function renderMovies(containerId, movies, isFavorites = false) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            if (isFavorites) {
-                const section = document.getElementById('favoritesSection');
-                if (movies.length === 0) {
-                    section.classList.add('hidden');
-                } else {
-                    section.classList.remove('hidden');
-                }
-            }
-            movies.forEach(movie => {
-                const title = movie.title || movie.name || 'Sem título';
-                const type = movie.name ? 'tv' : 'movie';
-                const card = document.createElement('div');
-                card.className = 'min-w-[180px] transform transition hover:scale-105';
-                card.innerHTML = `
-          <img src="${IMG_PATH + movie.poster_path}" alt="${title}" class="rounded-lg h-[270px] w-[180px] object-cover cursor-pointer">
-          <div class="text-sm mt-2 flex justify-between items-center w-[180px]">
-            <span class="font-medium truncate">${title}</span>
-            <button class="text-yellow-400 text-lg" onclick="toggleFavorite(${movie.id}, ${JSON.stringify(title)}, '${movie.poster_path}', '${type}', this)">
-              ${isInFavorites(movie.id) ? '★' : '☆'}
-            </button>
+      }
+      movies.forEach(movie => {
+        if (!movie.poster_path) return;
+        const title = movie.title || movie.name || 'Sem título';
+        const type = movie.media_type || 'movie';
+        const card = document.createElement('div');
+        card.className = 'movie-card relative min-w-[180px] flex-shrink-0 transform transition hover:scale-105';
+        card.innerHTML = `
+          <img src="${IMG_PATH + movie.poster_path}" alt="${title}"
+               class="rounded-lg h-[270px] w-[180px] object-cover cursor-pointer" loading="lazy">
+          <div class="card-overlay rounded-lg"></div>
+          <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <h3 class="text-sm font-semibold truncate">${title}</h3>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">${(movie.vote_average||0).toFixed(1)}</span>
+              <button class="text-yellow-400 text-lg" data-id="${movie.id}">
+                ${isInFavorites(movie.id) ? '★' : '☆'}
+              </button>
+            </div>
           </div>
         `;
-                card.querySelector('img').addEventListener('click', () => {
-                    window.location.href = `detalhes.html?id=${movie.id}&type=${type}`;
-                });
-                container.appendChild(card);
-            });
-        }
+        // Hover group
+        card.classList.add('group');
+        // Click image naviga para detalhes
+        card.querySelector('img').addEventListener('click', () => {
+          window.location.href = `detalhes.html?id=${movie.id}&type=${type}`;
+        });
+        // Toggle favorito
+        const favBtn = card.querySelector('button[data-id]');
+        favBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFavorite(movie.id, title, movie.poster_path, type, favBtn);
+        });
+        container.appendChild(card);
+      });
+      updateScrollButtons(containerId);
+    }
 
-        function toggleFavorite(id, title, poster_path, type, btn) {
-            let favs = getFavorites();
-            const exists = favs.find(f => f.id === id);
-            if (exists) {
-                favs = favs.filter(f => f.id !== id);
-                btn.innerText = '☆';
-            } else {
-                favs.push({ id, title, poster_path, type });
-                btn.innerText = '★';
-            }
-            localStorage.setItem('favoritos', JSON.stringify(favs));
-            renderMovies('favoritesRow', favs, true);
-        }
+    function toggleFavorite(id, title, poster_path, type, btn) {
+      let favs = getFavorites();
+      const exists = favs.find(f => f.id === id);
+      if (exists) {
+        favs = favs.filter(f => f.id !== id);
+        btn.innerText = '☆';
+      } else {
+        favs.push({ id, title, poster_path, type });
+        btn.innerText = '★';
+      }
+      localStorage.setItem('favoritos', JSON.stringify(favs));
+      renderMovies('favoritesRow', favs, true);
+    }
 
-        function getFavorites() {
-            return JSON.parse(localStorage.getItem('favoritos') || '[]');
-        }
+    function getFavorites() {
+      return JSON.parse(localStorage.getItem('favoritos') || '[]');
+    }
 
-        function isInFavorites(id) {
-            return getFavorites().some(f => f.id === id);
-        }
+    function isInFavorites(id) {
+      return getFavorites().some(f => f.id === id);
+    }
 
-        fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=pt-BR`)
+    function renderFavorites() {
+      renderMovies('favoritesRow', getFavorites(), true);
+    }
+
+    // Scroll buttons
+    function setupScrollButtons() {
+      document.querySelectorAll('.scroll-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const row = document.getElementById(btn.dataset.target);
+          if (!row) return;
+          const scrollAmount = row.clientWidth * 0.8;
+          if (btn.classList.contains('left')) {
+            row.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+          } else {
+            row.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+          }
+        });
+      });
+      // On scroll, show/hide buttons
+      document.querySelectorAll('.movie-row').forEach(row => {
+        row.addEventListener('scroll', () => updateScrollButtons(row.id));
+      });
+    }
+
+    function updateScrollButtons(rowId) {
+      const row = document.getElementById(rowId);
+      const parent = row.parentElement;
+      const leftBtn = parent.querySelector('.scroll-btn.left[data-target="' + rowId + '"]');
+      const rightBtn = parent.querySelector('.scroll-btn.right[data-target="' + rowId + '"]');
+      if (!row || !leftBtn || !rightBtn) return;
+      if (row.scrollWidth <= row.clientWidth) {
+        leftBtn.classList.add('hidden');
+        rightBtn.classList.add('hidden');
+      } else {
+        if (row.scrollLeft <= 10) leftBtn.classList.add('hidden');
+        else leftBtn.classList.remove('hidden');
+        if (row.scrollLeft + row.clientWidth >= row.scrollWidth - 10) rightBtn.classList.add('hidden');
+        else rightBtn.classList.remove('hidden');
+      }
+    }
+
+    // Search with suggestions
+    function setupSearch() {
+      const input = document.getElementById('searchInput');
+      const suggestions = document.getElementById('suggestions');
+      let timeout = null;
+      input.addEventListener('input', () => {
+        clearTimeout(timeout);
+        const q = input.value.trim();
+        if (!q) {
+          suggestions.classList.add('hidden');
+          return;
+        }
+        timeout = setTimeout(() => {
+          fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`)
             .then(res => res.json())
             .then(data => {
-                const destaque = data.results[Math.floor(Math.random() * data.results.length)];
-                document.getElementById('heroBackground').style.backgroundImage = `url(${BACKDROP_PATH + destaque.backdrop_path})`;
-                document.getElementById('heroTitle').textContent = destaque.title;
-                document.getElementById('heroOverview').textContent = destaque.overview;
-                document.getElementById('heroDetails').onclick = () => {
-                    window.location.href = `detalhes.html?id=${destaque.id}&type=movie`;
+              suggestions.innerHTML = '';
+              if (!data.results) return;
+              data.results.slice(0, 5).forEach(movie => {
+                const title = movie.title || movie.name;
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = title;
+                item.onclick = () => {
+                  window.location.href = `detalhes.html?id=${movie.id}&type=movie`;
                 };
-                renderMovies('movieRow', data.results);
+                suggestions.appendChild(item);
+              });
+              suggestions.classList.toggle('hidden', data.results.length === 0);
             });
-
-        renderMovies('favoritesRow', getFavorites(), true);
-
-        document.getElementById('searchInput').addEventListener('input', async (e) => {
-            const query = e.target.value;
-            if (!query) {
-                carregarPorGenero(28);
-                renderMovies('favoritesRow', getFavorites(), true);
-                return;
-            }
-            const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            renderMovies('movieRow', data.results);
-        });
-    </script>
+        }, 300);
+      });
+      document.addEventListener('click', e => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+          suggestions.classList.add('hidden');
+        }
+      });
+      input.addEventListener('focus', () => {
+        if (suggestions.children.length) suggestions.classList.remove('hidden');
+      });
+    }
+  </script>
 </body>
-
 </html>

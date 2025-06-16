@@ -1,163 +1,388 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calendário</title>
+  <title>📅 Calendário</title>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FullCalendar & plugins -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales-all.global.min.js"></script>
+  <!-- Flatpickr para seleção de data/hora -->
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- Tippy.js para tooltips -->
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"/>
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <!-- AOS para animações -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
   <style>
+    /* Tema escuro/claro automático conforme preferência do sistema */
+    :root {
+      --bg-light: #f9fafb;
+      --bg-dark: #1f2937;
+      --text-light: #111827;
+      --text-dark: #f3f4f6;
+    }
     body {
       transition: background-color 0.3s, color 0.3s;
     }
-    .dark body {
-      background-color: #1f2937;
-      color: #f3f4f6;
+    body.light {
+      background-color: var(--bg-light);
+      color: var(--text-light);
     }
-    .event-tooltip {
-      position: absolute;
-      z-index: 1000;
-      background-color: #111827;
-      color: #fff;
-      padding: 0.5rem;
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+    /* Tooltip custom */
+    .fc-tooltip {
+      background: rgba(31,41,55,0.9);
+      color: #f3f4f6;
+      padding: 0.25rem 0.5rem;
       border-radius: 0.25rem;
       font-size: 0.875rem;
-      display: none;
       pointer-events: none;
+      position: absolute;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    /* Modal fundo */
+    .modal-backdrop-custom {
+      background: rgba(0,0,0,0.5);
     }
   </style>
 </head>
-<body class="font-sans p-4 bg-gray-100 dark:bg-gray-900">
-  <div class="max-w-6xl mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">📅 Calendário Moderno</h1>
-      <div class="flex gap-2">
-        <button id="toggleDark" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition">🌗 Tema</button>
-        <button id="addEventBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 transition">➕ Evento</button>
+<body class="light">
+  <div class="max-w-6xl mx-auto p-4">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-4" data-aos="fade-down">
+      <h1 class="text-3xl font-bold">📅 Calendário Moderno</h1>
+      <div class="flex gap-2 mt-3 md:mt-0">
+        <button id="toggleTheme" class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition">
+          🌗 Tema
+        </button>
+        <button id="openAddModal" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition">
+          ➕ Novo Evento
+        </button>
       </div>
     </div>
     <div class="flex flex-col lg:flex-row gap-4">
-      <div class="w-full lg:w-1/4 bg-white dark:bg-gray-800 p-4 rounded shadow">
-        <input id="searchInput" type="text" placeholder="Buscar evento..." class="w-full mb-3 px-3 py-2 border rounded dark:bg-gray-700 dark:text-white">
-        <label class="text-sm dark:text-gray-300">Tipo de evento:</label>
-        <select id="filterType" class="w-full mb-4 px-2 py-2 border rounded dark:bg-gray-700 dark:text-white">
+      <!-- Sidebar filtros/lista -->
+      <aside class="w-full lg:w-1/4 bg-white dark:bg-gray-800 p-4 rounded shadow" data-aos="fade-right">
+        <input id="searchInput" type="text" placeholder="🔍 Buscar evento..." 
+               class="w-full mb-3 px-3 py-2 border rounded focus:outline-none focus:ring"
+        />
+        <label class="text-sm block mb-1">Tipo de evento:</label>
+        <select id="filterType" class="w-full mb-4 px-2 py-2 border rounded focus:outline-none focus:ring">
           <option value="">Todos</option>
           <option value="reuniao">Reunião</option>
           <option value="entrega">Entrega</option>
           <option value="aniversario">Aniversário</option>
+          <option value="outro">Outro</option>
         </select>
-        <ul id="eventPreview" class="text-sm text-gray-800 dark:text-gray-200 space-y-1"></ul>
-      </div>
-      <div class="w-full lg:w-3/4">
-        <div id="calendar" class="bg-white dark:bg-gray-800 p-4 rounded shadow transition-all duration-300"></div>
-      </div>
+        <h2 class="font-semibold mb-2">Próximos Eventos</h2>
+        <ul id="eventPreview" class="text-sm space-y-1 max-h-64 overflow-auto"></ul>
+      </aside>
+      <!-- Calendário -->
+      <main class="w-full lg:w-3/4 bg-white dark:bg-gray-800 p-4 rounded shadow transition-all duration-300" data-aos="fade-left">
+        <div id="calendar"></div>
+      </main>
     </div>
   </div>
-  <div id="tooltip" class="event-tooltip"></div>
+
+  <!-- Modal add/editar evento -->
+  <div id="modalEvent" class="fixed inset-0 flex items-center justify-center hidden">
+    <div class="absolute inset-0 modal-backdrop-custom"></div>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg z-10 w-full max-w-md mx-2">
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 id="modalTitle" class="text-lg font-semibold">Novo Evento</h3>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">&times;</button>
+      </div>
+      <form id="eventForm" class="p-4 space-y-3">
+        <div>
+          <label for="eventTitle" class="block text-sm mb-1">Título</label>
+          <input id="eventTitle" type="text" required
+                 class="w-full px-3 py-2 border rounded focus:outline-none focus:ring"/>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="eventDate" class="block text-sm mb-1">Data</label>
+            <input id="eventDate" type="text" required
+                   class="w-full px-3 py-2 border rounded focus:outline-none focus:ring"/>
+          </div>
+          <div>
+            <label for="eventTime" class="block text-sm mb-1">Hora (opcional)</label>
+            <input id="eventTime" type="text"
+                   class="w-full px-3 py-2 border rounded focus:outline-none focus:ring"/>
+          </div>
+        </div>
+        <div>
+          <label for="eventType" class="block text-sm mb-1">Tipo</label>
+          <select id="eventType" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring">
+            <option value="reuniao">Reunião</option>
+            <option value="entrega">Entrega</option>
+            <option value="aniversario">Aniversário</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div>
+          <label for="eventColor" class="block text-sm mb-1">Cor do Evento</label>
+          <input id="eventColor" type="color" value="#60a5fa"
+                 class="w-16 h-10 p-0 border-0 bg-transparent"/>
+        </div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button type="button" id="deleteEventBtn" class="hidden px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition">
+            Excluir
+          </button>
+          <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 transition">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tooltip element -->
+  <div id="fc-tooltip" class="fc-tooltip hidden"></div>
+
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const events = []
-      const calendarEl = document.getElementById('calendar')
-      const tooltip = document.getElementById('tooltip')
+    document.addEventListener('DOMContentLoaded', function() {
+      AOS.init({ duration: 600, once: true });
+
+      // Inicializa tema conforme preferência
+      const body = document.body;
+      const savedTheme = localStorage.getItem('calendar-theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        body.classList.remove('light'); body.classList.add('dark');
+      } else {
+        body.classList.remove('dark'); body.classList.add('light');
+      }
+
+      document.getElementById('toggleTheme').addEventListener('click', () => {
+        body.classList.toggle('dark');
+        body.classList.toggle('light');
+        localStorage.setItem('calendar-theme', body.classList.contains('dark') ? 'dark' : 'light');
+      });
+
+      // Flatpickr para data/hora
+      flatpickr("#eventDate", {
+        dateFormat: "Y-m-d",
+        locale: "pt"
+      });
+      flatpickr("#eventTime", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+      });
+
+      // Carregar eventos do localStorage
+      let stored = localStorage.getItem('fc-events');
+      let initialEvents = stored ? JSON.parse(stored) : [];
+
+      // Inicializa FullCalendar
+      const calendarEl = document.getElementById('calendar');
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        editable: true,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
         locale: 'pt-br',
-        events: events,
-        eventClick: handleEventClick,
-        eventDrop: () => saveEvents(calendar.getEvents()),
-        eventDidMount: function (info) {
-          info.el.addEventListener('mouseenter', () => {
-            tooltip.innerText = info.event.title
-            tooltip.style.display = 'block'
-          })
-          info.el.addEventListener('mouseleave', () => {
-            tooltip.style.display = 'none'
-          })
-          info.el.addEventListener('mousemove', (e) => {
-            tooltip.style.left = e.pageX + 10 + 'px'
-            tooltip.style.top = e.pageY + 10 + 'px'
-          })
-        }
-      })
-      calendar.render()
-      updatePreview(calendar.getEvents())
-      function saveEvents(events) {
-        const clean = events.map(e => ({
-          id: e.id,
-          title: e.title,
-          start: e.startStr,
-          type: e.extendedProps.type || '',
-          color: e.backgroundColor
-        }))
-        localStorage.setItem('eventos', JSON.stringify(clean))
-        updatePreview(calendar.getEvents())
-      }
-      function handleEventClick(info) {
-        const action = prompt('Digite "editar", "excluir" ou "cancelar":')
-        if (action === 'editar') {
-          const newTitle = prompt('Novo título:', info.event.title)
-          if (newTitle) {
-            info.event.setProp('title', newTitle)
-            saveEvents(calendar.getEvents())
-          }
-        } else if (action === 'excluir') {
-          if (confirm('Deseja realmente excluir este evento?')) {
-            info.event.remove()
-            saveEvents(calendar.getEvents())
-          }
-        }
-      }
-      document.getElementById('addEventBtn').addEventListener('click', () => {
-        const title = prompt('Título do evento:')
-        if (!title) return
-        const date = prompt('Data do evento (YYYY-MM-DD):')
-        const type = prompt('Tipo (reuniao, entrega, aniversario):') || 'outro'
-        const colors = {
-          reuniao: '#60a5fa',
-          entrega: '#34d399',
-          aniversario: '#f87171',
-          outro: '#a78bfa'
-        }
-        const newEvent = {
-          id: String(Date.now()),
-          title: title,
-          start: date,
-          type: type,
-          color: colors[type] || '#a78bfa'
-        }
-        calendar.addEvent(newEvent)
-        saveEvents(calendar.getEvents())
-      })
-      document.getElementById('toggleDark').addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark')
-      })
-      document.getElementById('searchInput').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase()
+        selectable: true,
+        editable: true,
+        events: initialEvents,
+        select: info => openModalForDate(info.startStr),
+        eventClick: info => openModalForEdit(info.event),
+        eventMouseEnter: info => showTooltip(info),
+        eventMouseLeave: info => hideTooltip(),
+        eventDrop: info => saveAllEvents(),
+        eventResize: info => saveAllEvents(),
+        viewDidMount: () => updatePreview(),
+      });
+      calendar.render();
+
+      // Search & filter
+      document.getElementById('searchInput').addEventListener('input', e => {
+        const term = e.target.value.toLowerCase();
         calendar.getEvents().forEach(ev => {
-          const visible = ev.title.toLowerCase().includes(term)
-          ev.setProp('display', visible ? 'auto' : 'none')
-        })
-      })
-      document.getElementById('filterType').addEventListener('change', (e) => {
-        const selected = e.target.value
+          const match = ev.title.toLowerCase().includes(term);
+          ev.setProp('display', match ? 'auto' : 'none');
+        });
+        updatePreview();
+      });
+      document.getElementById('filterType').addEventListener('change', e => {
+        const sel = e.target.value;
         calendar.getEvents().forEach(ev => {
-          const match = !selected || ev.extendedProps.type === selected
-          ev.setProp('display', match ? 'auto' : 'none')
-        })
-      })
-      function updatePreview(events) {
-        const preview = document.getElementById('eventPreview')
-        preview.innerHTML = ''
-        const sorted = [...events].sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 5)
-        sorted.forEach(ev => {
-          const li = document.createElement('li')
-          li.textContent = `${ev.startStr} — ${ev.title}`
-          preview.appendChild(li)
-        })
+          const ok = !sel || ev.extendedProps.type === sel;
+          ev.setProp('display', ok ? 'auto' : 'none');
+        });
+        updatePreview();
+      });
+
+      // Tooltip usando tippy.js
+      const tooltipEl = document.getElementById('fc-tooltip');
+      function showTooltip(info) {
+        const title = info.event.title;
+        tippy(info.el, {
+          content: title,
+          placement: 'top',
+          arrow: true,
+          theme: body.classList.contains('dark') ? 'dark' : 'light',
+          hideOnClick: false,
+          trigger: 'manual'
+        }).show();
       }
-    })
+      function hideTooltip() {
+        // tippy instances hide automatically on mouseleave
+      }
+
+      // Modal logic
+      const modal = document.getElementById('modalEvent');
+      const form = document.getElementById('eventForm');
+      const modalTitleEl = document.getElementById('modalTitle');
+      const deleteBtn = document.getElementById('deleteEventBtn');
+      let currentEvent = null;
+
+      document.getElementById('openAddModal').addEventListener('click', () => {
+        openModalForDate();
+      });
+      document.getElementById('closeModal').addEventListener('click', closeModal);
+      modal.addEventListener('click', e => {
+        if (e.target === modal) closeModal();
+      });
+
+      function openModalForDate(dateStr = null) {
+        currentEvent = null;
+        modalTitleEl.textContent = 'Novo Evento';
+        deleteBtn.classList.add('hidden');
+        form.reset();
+        if (dateStr) document.getElementById('eventDate').value = dateStr;
+        document.getElementById('eventColor').value = '#60a5fa';
+        document.getElementById('eventType').value = 'reuniao';
+        showModal();
+      }
+      function openModalForEdit(event) {
+        currentEvent = event;
+        modalTitleEl.textContent = 'Editar Evento';
+        deleteBtn.classList.remove('hidden');
+        document.getElementById('eventTitle').value = event.title;
+        document.getElementById('eventDate').value = event.startStr.slice(0,10);
+        if (event.startStr.includes('T')) {
+          const dt = new Date(event.start);
+          const hh = String(dt.getHours()).padStart(2,'0');
+          const mm = String(dt.getMinutes()).padStart(2,'0');
+          document.getElementById('eventTime').value = `${hh}:${mm}`;
+        } else {
+          document.getElementById('eventTime').value = '';
+        }
+        document.getElementById('eventType').value = event.extendedProps.type || 'outro';
+        document.getElementById('eventColor').value = event.backgroundColor || '#60a5fa';
+        showModal();
+      }
+      function showModal() {
+        modal.classList.remove('hidden');
+      }
+      function closeModal() {
+        modal.classList.add('hidden');
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const title = document.getElementById('eventTitle').value.trim();
+        const date = document.getElementById('eventDate').value;
+        const time = document.getElementById('eventTime').value;
+        const type = document.getElementById('eventType').value;
+        const color = document.getElementById('eventColor').value;
+        if (!title || !date) return;
+        let startStr = date;
+        if (time) startStr += 'T' + time;
+        if (currentEvent) {
+          currentEvent.setProp('title', title);
+          currentEvent.setStart(startStr);
+          currentEvent.setExtendedProp('type', type);
+          currentEvent.setProp('backgroundColor', color);
+          currentEvent.setProp('borderColor', color);
+        } else {
+          calendar.addEvent({
+            id: String(Date.now()),
+            title,
+            start: startStr,
+            allDay: !time,
+            extendedProps: { type },
+            backgroundColor: color,
+            borderColor: color
+          });
+        }
+        saveAllEvents();
+        closeModal();
+      });
+
+      deleteBtn.addEventListener('click', () => {
+        if (currentEvent && confirm('Excluir este evento?')) {
+          currentEvent.remove();
+          saveAllEvents();
+          closeModal();
+        }
+      });
+
+      function saveAllEvents() {
+        const evts = calendar.getEvents().map(ev => ({
+          id: ev.id,
+          title: ev.title,
+          start: ev.startStr,
+          allDay: ev.allDay,
+          backgroundColor: ev.backgroundColor,
+          borderColor: ev.borderColor,
+          extendedProps: { type: ev.extendedProps.type || 'outro' }
+        }));
+        localStorage.setItem('fc-events', JSON.stringify(evts));
+        updatePreview();
+      }
+
+      function updatePreview() {
+        const preview = document.getElementById('eventPreview');
+        preview.innerHTML = '';
+        const upcoming = calendar.getEvents()
+          .filter(ev => {
+            const dt = new Date(ev.start);
+            return dt >= new Date();
+          })
+          .sort((a,b)=> new Date(a.start) - new Date(b.start))
+          .slice(0,5);
+        upcoming.forEach(ev => {
+          const li = document.createElement('li');
+          li.className = 'flex justify-between items-center';
+          const d = new Date(ev.start);
+          const opt = { day: '2-digit', month: '2-digit', year: 'numeric', hour: ev.allDay? undefined: '2-digit', minute: ev.allDay? undefined: '2-digit' };
+          const ds = ev.allDay? d.toLocaleDateString('pt-BR') : d.toLocaleDateString('pt-BR', opt);
+          const badge = document.createElement('span');
+          badge.textContent = ev.extendedProps.type || 'outro';
+          badge.className = 'px-2 py-0.5 rounded text-xs ' + ({
+            reuniao: 'bg-blue-500 text-white',
+            entrega: 'bg-green-500 text-white',
+            aniversario: 'bg-red-500 text-white',
+            outro: 'bg-purple-500 text-white'
+          }[ev.extendedProps.type] || 'bg-gray-500 text-white');
+          li.innerHTML = `<span>${ds} — ${ev.title}</span>`;
+          li.appendChild(badge);
+          preview.appendChild(li);
+        });
+      }
+
+      // Ajusta calendar ao redimensionar
+      window.addEventListener('resize', () => {
+        calendar.updateSize();
+      });
+    });
   </script>
 </body>
 </html>

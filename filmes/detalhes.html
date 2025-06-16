@@ -1,36 +1,72 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detalhes</title>
+  <title>Detalhes do Filme</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    .backdrop {
+    /* Backdrop fullscreen */
+    #backdrop {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       background-size: cover;
       background-position: center;
       filter: blur(20px) brightness(0.3);
       z-index: -1;
     }
+    /* Scrollbar hide */
     .scrollbar-hide::-webkit-scrollbar {
       display: none;
     }
+    /* Custom scrollbar for cast */
+    .cast-scroll::-webkit-scrollbar {
+      height: 8px;
+    }
+    .cast-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .cast-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.3);
+      border-radius: 4px;
+    }
+    /* Rating bar */
+    .rating-bar-bg {
+      background-color: rgba(255,255,255,0.2);
+    }
+    .rating-bar-fill {
+      background-color: #00d8ff;
+    }
+    /* Button hover effects */
+    .btn-primary {
+      background-color: #00d8ff;
+      color: #000;
+    }
+    .btn-primary:hover {
+      background-color: #008bb5;
+    }
+    .btn-secondary {
+      background-color: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
   </style>
 </head>
-<body class="bg-black text-white font-sans" onload="AOS.init()">
 
-  <div id="backdrop" class="backdrop"></div>
+<body class="bg-black text-white font-sans" onload="AOS.init()">
+  <!-- Backdrop image blurred -->
+  <div id="backdrop"></div>
 
   <div class="p-6 max-w-6xl mx-auto">
-    <a href="index.html" class="text-red-500 underline inline-block mb-6">← Voltar</a>
-    <div id="conteudo" class="grid md:grid-cols-2 gap-10 items-start"></div>
+    <a href="index.html" class="inline-block text-gray-300 hover:text-white mb-6">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+    <div id="conteudo" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"></div>
   </div>
 
   <script>
@@ -42,102 +78,183 @@
     const id = params.get('id');
     const type = params.get('type') || 'movie';
 
+    // Favoritos no localStorage
     function getFavorites() {
       return JSON.parse(localStorage.getItem('favoritos') || '[]');
     }
-
     function isInFavorites(id) {
-      return getFavorites().some(f => f.id == id);
+      return getFavorites().some(f => String(f.id) === String(id));
     }
-
     function toggleFavorite(id, title, poster_path, type, btn) {
       let favs = getFavorites();
-      const exists = favs.find(f => f.id == id);
+      const exists = favs.find(f => String(f.id) === String(id));
       if (exists) {
-        favs = favs.filter(f => f.id != id);
-        btn.textContent = '☆';
+        favs = favs.filter(f => String(f.id) !== String(id));
+        btn.innerHTML = '<i class="far fa-star"></i>';
       } else {
         favs.push({ id, title, poster_path, type });
-        btn.textContent = '★';
+        btn.innerHTML = '<i class="fas fa-star"></i>';
       }
       localStorage.setItem('favoritos', JSON.stringify(favs));
     }
 
+    // Formata data para pt-BR
+    function formatDate(dateStr) {
+      if (!dateStr) return 'Desconhecido';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    // Extrai diretor(s)
+    function getDirectors(crew) {
+      return crew.filter(c => c.job === 'Director' || c.job === 'Diretor');
+    }
+
     async function carregarDetalhes() {
-      const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${API_KEY}&language=pt-BR&append_to_response=videos,credits`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${API_KEY}&language=pt-BR&append_to_response=videos,credits`);
+        const data = await res.json();
 
-      const title = data.title || data.name;
-      const overview = data.overview || 'Sem descrição disponível.';
-      const releaseDate = data.release_date || data.first_air_date || 'Sem data';
-      const poster = IMG_PATH + data.poster_path;
-      const backdrop = BACKDROP_PATH + data.backdrop_path;
-      const genres = (data.genres || []).map(g => `<span class="bg-red-600 px-2 py-1 rounded-full text-sm">${g.name}</span>`).join(' ');
-      const trailer = data.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+        const title = data.title || data.name || 'Título Desconhecido';
+        const overview = data.overview || 'Descrição não disponível.';
+        const releaseDate = data.release_date || data.first_air_date || '';
+        const posterPath = data.poster_path ? IMG_PATH + data.poster_path : '';
+        const backdropPath = data.backdrop_path ? BACKDROP_PATH + data.backdrop_path : '';
+        const genres = (data.genres || []).map(g => `<span class="bg-red-600 px-3 py-1 rounded-full text-sm">${g.name}</span>`).join(' ');
+        // Trailer YouTube
+        const trailer = data.videos?.results?.find(v => (v.type === 'Trailer' || v.type === 'trailers') && v.site === 'YouTube');
+        // Rating
+        const rating = data.vote_average || 0;
+        const ratingPercent = Math.round((rating / 10) * 100);
+        // Badge: Em Breve, Clássico, Lançamento
+        let badgeHtml = '';
+        if (releaseDate) {
+          const rel = new Date(releaseDate);
+          const today = new Date();
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(today.getMonth() - 6);
+          if (rel > today) {
+            badgeHtml = '<span class="bg-blue-600 text-sm px-2 py-1 rounded-full">Em Breve</span>';
+          } else if (rel < new Date('2010-01-01')) {
+            badgeHtml = '<span class="bg-gray-600 text-sm px-2 py-1 rounded-full">Clássico</span>';
+          } else if (rel > sixMonthsAgo) {
+            badgeHtml = '<span class="bg-green-600 text-sm px-2 py-1 rounded-full">Lançamento</span>';
+          }
+        }
+        // Elenco principal (até 12), com fotos
+        const castArr = (data.credits?.cast || []).slice(0, 12);
+        const castHtml = castArr.map(actor => {
+          const profile = actor.profile_path ? IMG_PATH.replace('/w500','/w200') + actor.profile_path : '';
+          return `
+            <div class="flex-none w-24 text-center">
+              <div class="w-24 h-32 bg-gray-800 rounded-lg overflow-hidden mx-auto">
+                ${profile ? `<img src="${profile}" alt="${actor.name}" class="w-full h-full object-cover hover:scale-105 transition-transform">`
+                          : `<div class="w-full h-full flex items-center justify-center bg-gray-700 text-gray-400 text-xs">Sem foto</div>`}
+              </div>
+              <p class="mt-2 text-xs truncate">${actor.name}</p>
+              <p class="text-[10px] text-gray-400 truncate">${actor.character || ''}</p>
+            </div>`;
+        }).join('');
 
-      let badge = '';
-      const release = new Date(releaseDate);
-      const today = new Date();
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(today.getMonth() - 6);
+        // Diretores
+        const directors = getDirectors(data.credits?.crew || []);
+        const directorsHtml = directors.length
+          ? directors.map(d => `<a href="https://www.themoviedb.org/person/${d.id}" target="_blank" class="hover:underline">${d.name}</a>`).join(', ')
+          : 'Desconhecido';
 
-      if (release > today) {
-        badge = '<span class="bg-blue-600 text-sm px-2 py-1 rounded-full">Em Breve</span>';
-      } else if (release < new Date('2010-01-01')) {
-        badge = '<span class="bg-gray-600 text-sm px-2 py-1 rounded-full">Clássico</span>';
-      } else if (release > sixMonthsAgo) {
-        badge = '<span class="bg-green-600 text-sm px-2 py-1 rounded-full">Lançamento</span>';
-      }
+        // Atualiza backdrop
+        if (backdropPath) {
+          document.getElementById('backdrop').style.backgroundImage = `url(${backdropPath})`;
+        }
 
-      const cast = (data.credits?.cast || []).slice(0, 10);
-      const elenco = cast.map(actor => `
-        <div class="min-w-[120px] text-center text-sm">
-          <a href="https://www.themoviedb.org/person/${actor.id}" target="_blank" class="hover:underline text-white block">${actor.name}</a>
-        </div>
-      `).join('');
-
-      document.getElementById('backdrop').style.backgroundImage = `url(${backdrop})`;
-
-      document.getElementById('conteudo').innerHTML = `
-        <img src="${poster}" alt="${title}" class="rounded-xl w-full md:w-[350px] shadow-lg" data-aos="fade-right">
-        <div class="space-y-4" data-aos="fade-left">
-          <div class="flex items-center justify-between">
-            <h1 class="text-3xl font-bold">${title}</h1>
-            <button id="favBtn" class="text-yellow-400 text-3xl hover:scale-110 transition-transform">
-              ${isInFavorites(id) ? '★' : '☆'}
-            </button>
+        // Monta HTML
+        const conteudo = document.getElementById('conteudo');
+        conteudo.innerHTML = `
+          <!-- Poster e Botões -->
+          <div data-aos="fade-right" class="space-y-4">
+            ${posterPath
+              ? `<img src="${posterPath}" alt="${title}" class="rounded-xl w-full shadow-xl mx-auto">`
+              : `<div class="w-full h-[500px] bg-gray-800 rounded-xl flex items-center justify-center">Sem poster</div>`}
+            <div class="flex gap-4 justify-center">
+              <button id="playTrailerBtn" class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-play"></i> Trailer
+              </button>
+              <button id="favBtn" class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                ${isInFavorites(id) ? '<i class="fas fa-star"></i> Remover Favorito' : '<i class="far fa-star"></i> Favoritar'}
+              </button>
+            </div>
           </div>
-
-          ${badge}
-
-          <p class="text-gray-300">${overview}</p>
-
-          <ul class="text-sm space-y-1 text-gray-400">
-            <li><strong>Data de lançamento:</strong> ${releaseDate}</li>
-            <li><strong>Nota:</strong> ${data.vote_average || 'N/A'}</li>
-          </ul>
-
-          <div class="flex flex-wrap gap-2 mt-2">${genres}</div>
-
-          ${trailer ? `
-            <div class="mt-6">
-              <h3 class="text-lg font-semibold mb-2">Trailer</h3>
-              <iframe class="w-full h-64 rounded-lg shadow-lg" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allowfullscreen></iframe>
+          <!-- Informações -->
+          <div data-aos="fade-left" class="space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <h1 class="text-3xl font-bold">${title}</h1>
+              ${badgeHtml}
             </div>
-          ` : '<p class="text-gray-500 mt-4">Trailer não disponível.</p>'}
-
-          ${cast.length ? `
-            <div class="mt-6">
-              <h3 class="text-lg font-semibold mb-2">Elenco Principal</h3>
-              <div class="flex gap-4 overflow-x-auto scrollbar-hide">${elenco}</div>
+            <div class="flex flex-wrap gap-2">${genres}</div>
+            <p class="text-gray-300 leading-relaxed">${overview}</p>
+            <ul class="text-sm space-y-1 text-gray-400">
+              <li><strong>Data de lançamento:</strong> ${formatDate(releaseDate)}</li>
+              <li><strong>Direção:</strong> ${directorsHtml}</li>
+              <li><strong>Nota média:</strong> ${rating.toFixed(1)} / 10</li>
+            </ul>
+            <!-- Barra de avaliação -->
+            <div class="w-full bg-white/20 h-3 rounded-full rating-bar-bg">
+              <div class="h-3 rounded-full rating-bar-fill" style="width: ${ratingPercent}%;"></div>
             </div>
-          ` : ''}
-        </div>
-      `;
+            <!-- Trailer Modal (injetado via JS) -->
+            <div id="trailerContainer" class="hidden fixed inset-0 flex items-center justify-center z-50">
+              <div class="absolute inset-0 bg-black bg-opacity-75" onclick="closeTrailer()"></div>
+              <div class="relative w-full max-w-3xl mx-4">
+                <button onclick="closeTrailer()" class="absolute top-2 right-2 text-white text-2xl z-10">&times;</button>
+                <iframe id="trailerFrame" class="w-full h-64 md:h-96 rounded-lg shadow-lg" src="" frameborder="0" allowfullscreen></iframe>
+              </div>
+            </div>
+            <!-- Elenco -->
+            ${castArr.length ? `
+            <div>
+              <h2 class="text-2xl font-semibold mb-3">Elenco Principal</h2>
+              <div class="flex gap-4 overflow-x-auto cast-scroll pb-2">
+                ${castHtml}
+              </div>
+            </div>` : ''}
+          </div>
+        `;
 
-      document.getElementById('favBtn').addEventListener('click', function () {
-        toggleFavorite(id, title, data.poster_path, type, this);
-      });
+        // Eventos dos botões
+        const favBtn = document.getElementById('favBtn');
+        favBtn.addEventListener('click', () => {
+          toggleFavorite(id, title, data.poster_path, type, favBtn);
+          // Atualiza texto/icon
+          if (isInFavorites(id)) {
+            favBtn.innerHTML = '<i class="fas fa-star"></i> Remover Favorito';
+          } else {
+            favBtn.innerHTML = '<i class="far fa-star"></i> Favoritar';
+          }
+        });
+
+        const playBtn = document.getElementById('playTrailerBtn');
+        if (trailer && trailer.key) {
+          playBtn.addEventListener('click', () => {
+            const frame = document.getElementById('trailerFrame');
+            frame.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+            document.getElementById('trailerContainer').classList.remove('hidden');
+          });
+        } else {
+          playBtn.disabled = true;
+          playBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          playBtn.innerHTML = '<i class="fas fa-ban"></i> Trailer Indisponível';
+        }
+
+      } catch (err) {
+        console.error('Erro ao carregar detalhes:', err);
+        document.getElementById('conteudo').innerHTML = `<p class="text-red-500">Erro ao carregar detalhes do filme.</p>`;
+      }
+    }
+
+    function closeTrailer() {
+      const container = document.getElementById('trailerContainer');
+      const frame = document.getElementById('trailerFrame');
+      frame.src = '';
+      container.classList.add('hidden');
     }
 
     carregarDetalhes();

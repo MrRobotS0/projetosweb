@@ -1,135 +1,189 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <title>Meus Projetos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <!-- AOS (Animate On Scroll) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet"/>
+  <!-- Vanilla-Tilt para efeito sutil 3D nos cards -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
+  <!-- Three.js e Vanta.js Clouds -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js"></script>
 
   <style>
+    /* Força tema escuro */
     body {
-      transition: background 0.6s ease, color 0.6s ease;
+      background-color: #000;
+      color: #fff;
+      transition: background-color 0.6s ease, color 0.6s ease;
     }
-
-    .card-glow {
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.479);
-      transition: all 0.4s ease;
+    /* Container do fundo Vanta */
+    #vanta-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      opacity: 1;
     }
-
-    .card-glow:hover {
-      box-shadow: 0 0 40px rgba(255, 255, 255, 0.9);
+    /* Glass-like card em tema escuro */
+    .card-glass {
+      backdrop-filter: blur(10px);
+      background-color: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease;
+    }
+    .card-glass:hover {
       transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background-color: rgba(0, 0, 0, 0.6);
     }
-
-    /* 20 temas com gradientes diferentes */
-    .theme-0  { background: linear-gradient(to right, #000000, #5f0000, #c20000); }
-    .theme-1  { background: linear-gradient(to right, #1e3c72, #2a5298); }
-    .theme-2  { background: linear-gradient(to right, #8e2de2, #4a00e0); }
-    .theme-3  { background: linear-gradient(to right, #fc466b, #3f5efb); }
-    .theme-4  { background: linear-gradient(to right, #00c3ff, #ffff1c); }
-    .theme-5  { background: linear-gradient(to right, #ff512f, #dd2476); }
-    .theme-6  { background: linear-gradient(to right, #1d4350, #a43931); }
-    .theme-7  { background: linear-gradient(to right, #f7971e, #ffd200); }
-    .theme-8  { background: linear-gradient(to right, #141e30, #243b55); }
-    .theme-9  { background: linear-gradient(to right, #000000, #434343); }
-    .theme-10 { background: linear-gradient(to right, #12c2e9, #c471ed, #f64f59); }
-    .theme-11 { background: linear-gradient(to right, #3a1c71, #d76d77, #ffaf7b); }
-    .theme-12 { background: linear-gradient(to right, #ff9966, #ff5e62); }
-    .theme-13 { background: linear-gradient(to right, #654ea3, #eaafc8); }
-    .theme-14 { background: linear-gradient(to right, #ff7e5f, #feb47b); }
-    .theme-15 { background: linear-gradient(to right, #e96443, #904e95); }
-    .theme-16 { background: linear-gradient(to right, #00b09b, #96c93d); }
-    .theme-17 { background: linear-gradient(to right, #0f2027, #203a43, #2c5364); }
-    .theme-18 { background: linear-gradient(to right, #00d2ff, #928dab); }
-    .theme-19 { background: linear-gradient(to right, #ee9ca7, #ffdde1); }
+    /* Botão base (removido tema claro/escuro: não há botão) */
+    .btn-placeholder { display: none; }
+    /* Smooth scroll para âncoras */
+    html {
+      scroll-behavior: smooth;
+    }
   </style>
 </head>
 
-<body class="theme-0 min-h-screen text-white flex flex-col items-center px-6 py-10">
+<body class="min-h-screen flex flex-col items-center px-6 py-10">
+  <!-- Fundo Vanta Clouds -->
+  <div id="vanta-bg"></div>
 
-  <!-- Título + botão de tema -->
-  <div class="flex flex-col sm:flex-row items-center justify-between w-full max-w-6xl mb-10 gap-4">
-    <h1 class="text-4xl sm:text-5xl font-bold animate__animated animate__fadeInDown">
-      💼 Meus Projetos
-    </h1>
+  <!-- Container máximo -->
+  <div class="w-full max-w-6xl">
 
-    <!-- Botão elegante para trocar o tema -->
-    <button onclick="nextTheme()"
-      class="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold text-sm shadow-lg hover:scale-105 transition duration-300 animate__animated animate__pulse">
-      🎨 Trocar Tema
-    </button>
+    <!-- Header / Hero -->
+    <header class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
+      <h1 class="text-4xl sm:text-5xl font-extrabold animate__animated animate__fadeInDown">
+        💼 Meus Projetos
+      </h1>
+    </header>
+
+    <!-- Grid de cards de projetos -->
+    <section id="projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate__animated animate__fadeInUp">
+      <a href="calculadora/calculadora.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">📐 Calculadora</h2>
+        <p class="text-sm">Calculadora básica/científica.</p>
+      </a>
+      <a href="clima/clima.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🌡️ Painel de Clima</h2>
+        <p class="text-sm">Painel que exibe o clima da cidade.</p>
+      </a>
+      <a href="relogio/relogio.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🕓 Relógio Mundial</h2>
+        <p class="text-sm">Relógio, Timer e Cronômetro.</p>
+      </a>
+      <a href="mapa/mapa.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🌍 Clone Google Maps</h2>
+        <p class="text-sm">Mapa Mundi que exibe temperatura.</p>
+      </a>
+      <a href="siga/login.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🎓 Clone do Siga Fatec</h2>
+        <p class="text-sm">Clone do Siga estilizado com frameworks e bibliotecas.</p>
+      </a>
+      <a href="galeria/universo.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🪐 Galeria do Universo</h2>
+        <p class="text-sm">Galeria com imagens do universo.</p>
+      </a>
+      <a href="https://mrrobots0.github.io/Portfolio/"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🎩 Meu Portfólio</h2>
+        <p class="text-sm">Portfólio pessoal do Belinelo.</p>
+      </a>
+      <a href="calendario/calendario.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">📅 Calendário</h2>
+        <p class="text-sm">Calendário pessoal.</p>
+      </a>
+      <a href="filmes/index.html"
+         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
+         data-tilt data-tilt-max="10" data-tilt-speed="400">
+        <h2 class="text-2xl font-semibold mb-2">🎞 Clone da Netflix</h2>
+        <p class="text-sm">Catálogo de busca de filmes usando API do TMDB.</p>
+      </a>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="mt-16 text-gray-400 text-sm text-center">
+      © 2025 - Desenvolvido por Belinelo
+    </footer>
   </div>
 
-  <!-- Cards dos projetos -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl animate__animated animate__fadeInUp">
-
-    <a href="calculadora/calculadora.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">📐 Calculadora</h2>
-      <p class="text-sm text-gray-300">Calculadora básica/científica.</p>
-    </a>
-
-    <a href="clima/clima.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🌡️ Painel de Clima</h2>
-      <p class="text-sm text-gray-300">Painel que exibe o clima da cidade.</p>
-    </a>
-
-    <a href="relogio/relogio.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🕓 Relógio Mundial</h2>
-      <p class="text-sm text-gray-300">Relógio, Timer e Cronômetro.</p>
-    </a>
-
-    <a href="mapa/mapa.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🌍 Clone Google Maps</h2>
-      <p class="text-sm text-gray-300">Mapa Mundi que exibe temperatura.</p>
-    </a>
-
-    <a href="siga/login.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🎓 Clone do Siga Fatec</h2>
-      <p class="text-sm text-gray-300">Clone do Siga estilizado com frameworks e bibliotecas.</p>
-    </a>
-
-    <a href="galeria/universo.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🪐 Galeria do Universo</h2>
-      <p class="text-sm text-gray-300">Galeria com imagens do universo.</p>
-    </a>
-
-    <a href="portfolio/portfolio.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🎩 Meu Portfólio</h2>
-      <p class="text-sm text-gray-300">Portfólio pessoal do belinas.</p>
-    </a>
-
-    <a href="calendario/calendario.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">📅 Calendário</h2>
-      <p class="text-sm text-gray-300">Calendário pessoal.</p>
-    </a>
-
-    <a href="filmes/index.html" class="card-glow bg-white/10 rounded-xl p-8 text-center backdrop-blur-md hover:bg-white/20">
-      <h2 class="text-2xl font-semibold mb-2">🎞 Clone da Netflix</h2>
-      <p class="text-sm text-gray-300">Catálogo de busca de filmes usando API do TMDB.</p>
-    </a>
-  </div>
-
-  <!-- Rodapé -->
-  <footer class="mt-16 text-gray-300 text-sm text-center">
-    © 2025 - Desenvolvido por Belinelo
-  </footer>
-
-  <!-- Script de troca de tema -->
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
-    let currentTheme = 6;
-    const totalThemes = 20;
+    // Inicializa AOS
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true
+    });
 
-    function nextTheme() {
-      document.body.classList.remove("theme-" + currentTheme);
-      currentTheme = (currentTheme + 1) % totalThemes;
-      document.body.classList.add("theme-" + currentTheme);
+    // Inicializa Vanilla-Tilt nos cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('[data-tilt]');
+      VanillaTilt.init(cards, {
+        max: 10,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.2,
+      });
+    });
+
+    // Vanta.CLOUDS sempre ativo em tema escuro (desktop)
+    let vantaEffect = null;
+    function initVantaClouds() {
+      if (vantaEffect) {
+        vantaEffect.destroy();
+        vantaEffect = null;
+      }
+      if (window.innerWidth >= 768 && window.VANTA && VANTA.CLOUDS) {
+        vantaEffect = VANTA.CLOUDS({
+          el: "#vanta-bg",
+          mouseControls: false,
+          touchControls: false,
+          gyroControls: false,
+          skyColor: 0x000000,
+          cloudColor: 0x222222,
+          sunColor: 0x00d8ff,
+          sunGlareColor: 0x555555,
+          fogColor: 0x000000,
+          zoom: 0.8
+        });
+        document.getElementById('vanta-bg').style.opacity = '1';
+      } else {
+        document.getElementById('vanta-bg').style.opacity = '0';
+      }
     }
-  </script>
 
+    window.addEventListener('load', () => {
+      initVantaClouds();
+    });
+    window.addEventListener('resize', () => {
+      initVantaClouds();
+    });
+  </script>
 </body>
 </html>
