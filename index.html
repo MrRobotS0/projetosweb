@@ -5,26 +5,19 @@
   <title>Meus Projetos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-  <!-- AOS (Animate On Scroll) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet"/>
-  <!-- Vanilla-Tilt para efeito sutil 3D nos cards -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
-  <!-- Three.js e Vanta.js Clouds -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js"></script>
 
   <style>
-    /* Força tema escuro */
     body {
       background-color: #000;
       color: #fff;
       transition: background-color 0.6s ease, color 0.6s ease;
     }
-    /* Container do fundo Vanta */
     #vanta-bg {
       position: fixed;
       top: 0; left: 0;
@@ -32,7 +25,6 @@
       z-index: -1;
       opacity: 1;
     }
-    /* Glass-like card em tema escuro */
     .card-glass {
       backdrop-filter: blur(10px);
       background-color: rgba(0, 0, 0, 0.4);
@@ -44,9 +36,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       background-color: rgba(0, 0, 0, 0.6);
     }
-    /* Botão base (removido tema claro/escuro: não há botão) */
     .btn-placeholder { display: none; }
-    /* Smooth scroll para âncoras */
     html {
       scroll-behavior: smooth;
     }
@@ -54,20 +44,16 @@
 </head>
 
 <body class="min-h-screen flex flex-col items-center px-6 py-10">
-  <!-- Fundo Vanta Clouds -->
   <div id="vanta-bg"></div>
 
-  <!-- Container máximo -->
   <div class="w-full max-w-6xl">
 
-    <!-- Header / Hero -->
     <header class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
       <h1 class="text-4xl sm:text-5xl font-extrabold animate__animated animate__fadeInDown">
         💼 Meus Projetos
       </h1>
     </header>
 
-    <!-- Grid de cards de projetos -->
     <section id="projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate__animated animate__fadeInUp">
       <a href="calculadora/calculadora.html"
          class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
@@ -137,23 +123,19 @@
       </a>
     </section>
 
-    <!-- Rodapé -->
     <footer class="mt-16 text-gray-400 text-sm text-center">
       © 2025 - Desenvolvido por Belinelo
     </footer>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
-    // Inicializa AOS
     AOS.init({
       duration: 800,
       easing: 'ease-in-out',
       once: true
     });
 
-    // Inicializa Vanilla-Tilt nos cards
     document.addEventListener('DOMContentLoaded', () => {
       const cards = document.querySelectorAll('[data-tilt]');
       VanillaTilt.init(cards, {
@@ -164,7 +146,6 @@
       });
     });
 
-    // Vanta.CLOUDS sempre ativo em tema escuro (desktop)
     let vantaEffect = null;
     function initVantaClouds() {
       if (vantaEffect) {
