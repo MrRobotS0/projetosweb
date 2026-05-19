@@ -1,171 +1,1153 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Google Maps</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Mapa Mundi · Belinelo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- ✅ Tailwind CSS (para estilo moderno e responsivo) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <!-- ✅ Leaflet CSS (para mapas interativos) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
-    /* Garantindo que o mapa ocupe toda a altura da tela */
+    :root {
+      --bg-1: #0a0a1a;
+      --bg-2: #050510;
+      --glow-1: rgba(124, 92, 255, 0.35);
+      --glow-2: rgba(0, 216, 255, 0.25);
+      --surface: rgba(15,15,30,0.85);
+      --surface-2: rgba(20,20,40,0.92);
+      --surface-3: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #ffffff;
+      --text-dim: #cbd5e1;
+      --text-dim-2: #94a3b8;
+      --accent: #7c5cff;
+      --accent-2: #00d8ff;
+      --accent-grad: linear-gradient(135deg, #7c5cff, #00d8ff);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Inter', system-ui, sans-serif; height: 100%; overflow: hidden; }
+    body {
+      background: var(--bg-1);
+      color: var(--text);
+    }
+
     #map {
-      height: 100vh;
-      z-index: 1;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
     }
 
-    /* Personaliza o popup do Leaflet para combinar com o tema escuro */
-    .leaflet-popup-content-wrapper {
-      background: #1e293b; /* azul escuro */
-      color: #f8fafc;       /* branco azulado */
-      font-family: 'Segoe UI', sans-serif;
+    /* ============ FLOATING PANELS ============ */
+    .panel-base {
+      position: absolute;
+      z-index: 500;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.4);
+    }
+
+    /* TOP BAR (search + back) */
+    .topbar {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px;
+      z-index: 500;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      pointer-events: none;
+    }
+    .topbar > * { pointer-events: auto; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all .25s ease;
+      flex-shrink: 0;
+    }
+    .back-link:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      transform: translateX(-2px);
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 460px;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow-1);
+    }
+    .search-wrap input::placeholder { color: var(--text-dim-2); }
+    .search-wrap > svg {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-dim-2);
+    }
+    .search-suggestions {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      background: var(--surface-2);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      max-height: 320px;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(-4px);
+      pointer-events: none;
+      transition: all .2s ease;
+    }
+    .search-suggestions.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .search-suggestions::-webkit-scrollbar { width: 6px; }
+    .search-suggestions::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+    .sg-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background .15s ease;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .sg-item:last-child { border-bottom: none; }
+    .sg-item:hover, .sg-item.highlighted { background: var(--surface-3); }
+    .sg-icon {
+      width: 28px; height: 28px;
       border-radius: 8px;
+      background: rgba(124,92,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+    .sg-content { flex: 1; min-width: 0; }
+    .sg-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sg-sub {
+      font-size: 11px;
+      color: var(--text-dim-2);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
+    /* ============ ACTION BUTTONS ============ */
+    .action-stack {
+      position: absolute;
+      top: 80px;
+      right: 16px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .action-stack > * { pointer-events: auto; }
+    .action-btn {
+      width: 42px; height: 42px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all .2s ease;
+    }
+    .action-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+      transform: translateX(-2px);
+    }
+    .action-btn.active {
+      background: var(--accent-grad);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 6px 20px -6px var(--glow-1);
+    }
+    .action-btn[data-tip] { position: relative; }
+    .action-btn[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      right: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-1);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      white-space: nowrap;
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    /* ============ STYLE PICKER ============ */
+    .style-picker {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 500;
+      pointer-events: auto;
+    }
+    .style-picker-toggle {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .style-picker-toggle:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+    }
+    .style-picker-toggle .chev {
+      transition: transform .2s ease;
+    }
+    .style-picker.open .style-picker-toggle .chev {
+      transform: rotate(180deg);
+    }
+    .style-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface-2);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      padding: 8px;
+      min-width: 200px;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition: all .2s ease;
+    }
+    .style-picker.open .style-popover {
+      opacity: 1; transform: translateY(0); pointer-events: auto;
+    }
+    .style-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px;
+      width: 100%;
+      border: none; background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 8px;
+      text-align: left;
+      transition: background .15s ease;
+    }
+    .style-option:hover { background: var(--surface-3); }
+    .style-option.active { background: var(--surface-3); color: var(--accent-2); font-weight: 600; }
+    .style-swatch {
+      width: 28px; height: 22px;
+      border-radius: 5px;
+      border: 1px solid var(--border-strong);
+      flex-shrink: 0;
+    }
+    .style-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 8px;
+    }
+    .style-section-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim-2);
+      font-weight: 600;
+      padding: 8px 12px 4px;
+    }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px;
+      width: 100%;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .toggle {
+      width: 32px; height: 18px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      transition: background .2s ease;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      background: white;
+      border-radius: 50%;
+      transition: transform .25s ease;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle.on::after { transform: translateX(14px); }
+
+    /* ============ HISTORY PANEL ============ */
+    .history-panel {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      width: 300px;
+      max-height: 50vh;
+      z-index: 500;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      transition: transform .35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .25s ease;
+    }
+    .history-panel.collapsed {
+      transform: translateY(calc(100% - 44px));
+    }
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+    .history-title {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .history-count {
+      font-size: 10px;
+      padding: 2px 8px;
+      background: rgba(124,92,255,0.2);
+      color: #c5b8ff;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+    .history-actions { display: flex; gap: 6px; align-items: center; }
+    .history-clear {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .history-clear:hover { color: var(--text); border-color: var(--border-strong); }
+    .history-list {
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .history-list::-webkit-scrollbar { width: 6px; }
+    .history-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+    .history-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .history-item:hover {
+      background: rgba(124,92,255,0.12);
+      border-color: var(--accent);
+      transform: translateX(2px);
+    }
+    .hi-temp {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--accent-grad);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .hi-content { flex: 1; min-width: 0; }
+    .hi-name {
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .hi-meta {
+      font-size: 10px;
+      color: var(--text-dim-2);
+      margin-top: 2px;
+    }
+    .history-empty {
+      text-align: center;
+      padding: 20px 16px;
+      color: var(--text-dim-2);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* ============ WEATHER CARD (active location) ============ */
+    .weather-card {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 320px;
+      z-index: 500;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all .35s ease;
+    }
+    .weather-card.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .wc-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .wc-location {
+      flex: 1; min-width: 0;
+    }
+    .wc-city {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wc-coord {
+      font-size: 11px;
+      color: var(--text-dim-2);
+      margin-top: 2px;
+      font-family: monospace;
+    }
+    .wc-close {
+      width: 26px; height: 26px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 1.2rem;
+      border-radius: 6px;
+    }
+    .wc-close:hover { background: var(--surface-3); color: var(--text); }
+
+    .wc-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .wc-main img { width: 70px; height: 70px; }
+    .wc-temp {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(180deg, #fff, #c5b8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .wc-temp .unit { font-size: 0.45em; opacity: 0.7; }
+    .wc-desc-block { flex: 1; min-width: 0; }
+    .wc-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-transform: capitalize;
+      line-height: 1.3;
+    }
+    .wc-feel {
+      font-size: 11px;
+      color: var(--text-dim-2);
+      margin-top: 3px;
+    }
+    .wc-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .wc-stat {
+      padding: 10px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+    }
+    .wc-stat-label {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim-2);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .wc-stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .wc-loading {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 4px;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .wc-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============ COORDINATE HUD ============ */
+    .coord-hud {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 400;
+      padding: 6px 14px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    .coord-hud .dot { color: var(--accent-2); }
+
+    /* ============ LEAFLET CUSTOMIZATIONS ============ */
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .leaflet-control-zoom a {
+      background: var(--surface) !important;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border) !important;
+      color: var(--text) !important;
+      width: 36px !important; height: 36px !important;
+      line-height: 36px !important;
+      font-size: 18px !important;
+      transition: all .2s ease;
+    }
+    .leaflet-control-zoom a:first-child { border-radius: 10px 10px 0 0 !important; }
+    .leaflet-control-zoom a:last-child { border-radius: 0 0 10px 10px !important; border-top: none !important; }
+    .leaflet-control-zoom a:hover {
+      background: var(--surface-2) !important;
+      color: var(--accent-2) !important;
+    }
+    .leaflet-top.leaflet-left { top: 80px; left: 16px; }
+    .leaflet-control-attribution {
+      background: rgba(0,0,0,0.5) !important;
+      backdrop-filter: blur(10px);
+      color: var(--text-dim-2) !important;
+      font-size: 10px !important;
+      padding: 2px 8px !important;
+      border-radius: 6px !important;
+    }
+    .leaflet-control-attribution a { color: var(--accent-2) !important; }
+
+    /* Popup custom (kept minimal - main info in side card) */
+    .leaflet-popup-content-wrapper {
+      background: var(--surface-2) !important;
+      backdrop-filter: blur(20px);
+      color: var(--text) !important;
+      border-radius: 12px !important;
+      border: 1px solid var(--border-strong);
+      padding: 0 !important;
+      font-family: 'Inter', sans-serif !important;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.6) !important;
+    }
+    .leaflet-popup-content {
+      margin: 12px 14px !important;
+      font-size: 13px !important;
+    }
     .leaflet-popup-tip {
-      background: #1e293b;
+      background: var(--surface-2) !important;
+      border: 1px solid var(--border-strong);
+    }
+    .leaflet-popup-close-button {
+      color: var(--text-dim) !important;
+      padding: 6px 8px !important;
+    }
+
+    /* Pulsing geolocation marker */
+    .pulse-marker {
+      position: relative;
+      width: 18px; height: 18px;
+    }
+    .pulse-marker::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(124,92,255,0.7);
+      animation: pulseMark 2s infinite;
+    }
+    .pulse-marker::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: white;
+    }
+    @keyframes pulseMark {
+      0%   { box-shadow: 0 0 0 0 rgba(124,92,255,0.7); }
+      70%  { box-shadow: 0 0 0 14px rgba(124,92,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(124,92,255,0); }
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 78px; left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: all .3s ease;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 760px) {
+      .topbar { flex-wrap: wrap; }
+      .search-wrap { max-width: 100%; }
+      .style-picker { top: auto; bottom: 16px; right: 16px; }
+      .history-panel, .weather-card { width: calc(100% - 32px); }
+      .weather-card { bottom: 70px; }
+      .history-panel { display: none; }
+      .action-stack { top: 72px; }
+      .leaflet-top.leaflet-left { top: 130px; }
+      .coord-hud { display: none; }
     }
   </style>
 </head>
-<body class="bg-gray-900 text-white font-sans relative">
+<body>
 
-  <!-- 🔍 Campo de busca + botões de ação fixos no topo -->
-  <div class="absolute top-4 left-12 z-[1000] flex gap-2 items-center">
-    <!-- Campo de busca por cidade -->
-    <input type="text" id="searchInput" placeholder="🔎 Buscar cidade..."
-      class="px-4 py-2 rounded-lg text-black shadow-md focus:outline-none w-64"
-      onkeydown="handleSearch(event)">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="../index.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Voltar
+    </a>
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" placeholder="Buscar cidade, país, endereço..." autocomplete="off"/>
+      <div class="search-suggestions" id="suggestions"></div>
+    </div>
+  </div>
 
-    <!-- Botão: ir para localização atual -->
-    <button onclick="goToLocation()"
-      class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold shadow-md">
-      📍 Minha Localização
+  <!-- STYLE PICKER (top right) -->
+  <div class="style-picker" id="stylePicker">
+    <button class="style-picker-toggle" id="styleToggle">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span id="currentStyleLabel">Escuro</span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
+    <div class="style-popover">
+      <div class="style-section-label">Estilo do Mapa</div>
+      <button class="style-option" data-style="dark"><span class="style-swatch" style="background:linear-gradient(135deg,#1f2937,#111827)"></span>Escuro</button>
+      <button class="style-option" data-style="light"><span class="style-swatch" style="background:linear-gradient(135deg,#f3f4f6,#d1d5db)"></span>Claro</button>
+      <button class="style-option" data-style="voyager"><span class="style-swatch" style="background:linear-gradient(135deg,#e5e7eb,#9ca3af)"></span>Voyager</button>
+      <button class="style-option" data-style="satellite"><span class="style-swatch" style="background:linear-gradient(135deg,#3a5f0b,#1e3a8a)"></span>Satélite</button>
+      <button class="style-option" data-style="terrain"><span class="style-swatch" style="background:linear-gradient(135deg,#86efac,#a16207)"></span>Terreno</button>
+      <div class="style-divider"></div>
+      <div class="style-section-label">Camadas Climáticas</div>
+      <div class="toggle-row">
+        <span>☁️ Nuvens</span>
+        <div class="toggle" data-layer="clouds"></div>
+      </div>
+      <div class="toggle-row">
+        <span>🌧️ Precipitação</span>
+        <div class="toggle" data-layer="precipitation"></div>
+      </div>
+      <div class="toggle-row">
+        <span>🌡️ Temperatura</span>
+        <div class="toggle" data-layer="temp"></div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Botão: alternar tema do mapa -->
-    <button onclick="toggleTheme()"
-      class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold shadow-md">
-      🌓 Mudar Estilo
+  <!-- ACTION STACK (right side) -->
+  <div class="action-stack">
+    <button class="action-btn" id="btnGeo" data-tip="Minha localização">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+    </button>
+    <button class="action-btn" id="btnReset" data-tip="Ver mundo inteiro">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </button>
+    <button class="action-btn" id="btnClearMarkers" data-tip="Limpar marcadores">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
     </button>
   </div>
 
-  <!-- 📋 Histórico de locais clicados (inferior esquerdo) -->
-  <div class="absolute bottom-4 left-4 bg-white text-gray-900 p-4 rounded-lg shadow-xl z-[1000] max-h-48 overflow-y-auto w-64">
-    <strong class="block mb-2">🗺️ Locais clicados:</strong>
-    <ul id="clickLog" class="list-disc list-inside text-sm space-y-1"></ul>
+  <!-- HISTORY PANEL -->
+  <div class="history-panel" id="historyPanel">
+    <div class="history-header" id="historyHeader">
+      <div class="history-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Histórico
+        <span class="history-count" id="histCount">0</span>
+      </div>
+      <div class="history-actions">
+        <button class="history-clear" id="historyClear">Limpar</button>
+        <svg id="histChev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .25s ease"><polyline points="18 15 12 9 6 15"/></svg>
+      </div>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">Clique no mapa para começar</div>
+    </div>
   </div>
 
-  <!-- 🌍 Mapa interativo -->
-  <div id="map" class="relative z-0"></div>
+  <!-- WEATHER CARD -->
+  <div class="weather-card" id="weatherCard">
+    <div id="weatherContent"></div>
+  </div>
 
-  <!-- ✅ Leaflet JS -->
+  <!-- COORDINATE HUD -->
+  <div class="coord-hud" id="coordHud">
+    <span class="dot">●</span>
+    <span id="coordText">Mova o cursor sobre o mapa</span>
+  </div>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <div class="toast" id="toast"></div>
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
   <script>
-    // 🔐 Sua chave da API OpenWeatherMap (já incluída)
-    const apiKey = "f1a4663341886a370c047b8e0049b3f2";
+    const API_KEY = "f1a4663341886a370c047b8e0049b3f2";
 
-    // 📍 Inicializa o mapa centralizado no mundo
-    const map = L.map('map').setView([0, 0], 2);
+    // ===== MAP =====
+    const map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([20, 0], 3);
 
-    // 🗺️ Define os estilos de mapa disponíveis
-    const tileOptions = {
-      light: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }),
-      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CartoDB' }),
-      satellite: L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        subdomains: ['mt0','mt1','mt2','mt3'],
-        attribution: '© Google'
-      })
+    const tileStyles = {
+      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CartoDB · OSM', maxZoom: 19 }),
+      light: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM', maxZoom: 19 }),
+      voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© CartoDB · OSM', maxZoom: 19 }),
+      satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri', maxZoom: 19 }),
+      terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap', maxZoom: 17 })
     };
+    const styleLabels = { dark: 'Escuro', light: 'Claro', voyager: 'Voyager', satellite: 'Satélite', terrain: 'Terreno' };
 
-    // 🎨 Define o estilo inicial do mapa (claro)
-    let currentTile = tileOptions.light;
-    currentTile.addTo(map);
+    let currentStyleKey = localStorage.getItem('map-style') || 'dark';
+    let currentLayer = tileStyles[currentStyleKey];
+    currentLayer.addTo(map);
+    document.getElementById('currentStyleLabel').textContent = styleLabels[currentStyleKey];
 
-    // 🌓 Alterna o estilo do mapa entre claro, escuro e satélite
-    function toggleTheme() {
-      map.removeLayer(currentTile);
-      if (currentTile === tileOptions.light) currentTile = tileOptions.dark;
-      else if (currentTile === tileOptions.dark) currentTile = tileOptions.satellite;
-      else currentTile = tileOptions.light;
-      currentTile.addTo(map);
+    // Weather overlay layers
+    const weatherLayers = {
+      clouds: L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${API_KEY}`, { opacity: 0.6 }),
+      precipitation: L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`, { opacity: 0.65 }),
+      temp: L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${API_KEY}`, { opacity: 0.55 })
+    };
+    const activeOverlays = new Set();
+
+    // ===== MARKERS / HISTORY =====
+    const markers = [];
+    let history = JSON.parse(localStorage.getItem('map-history') || '[]');
+    let currentMarker = null;
+    let geoMarker = null;
+
+    const toast = document.getElementById('toast');
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
     }
 
-    // 📍 Leva o usuário para sua localização real (se permitido)
-    function goToLocation() {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        map.setView([latitude, longitude], 6);
-        L.marker([latitude, longitude]).addTo(map)
-          .bindPopup("📍 Você está aqui")
-          .openPopup();
-      }, () => alert("Não foi possível obter sua localização."));
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    // 🧾 Adiciona um item ao histórico (inferior esquerdo)
-    function addToHistory(content) {
-      const li = document.createElement('li');
-      li.textContent = content;
-      document.getElementById('clickLog').appendChild(li);
-    }
-
-    // 🌡️ Busca dados de clima na OpenWeatherMap por coordenadas
-    async function fetchWeather(lat, lon) {
-      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=pt_br&appid=${apiKey}`);
-      if (!res.ok) throw new Error("Erro na API");
-      return res.json();
-    }
-
-    // 🧭 Converte graus para direção textual do vento (ex: NE, S, etc)
-    function windDirection(deg) {
+    function windDir(deg) {
       const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
       return dirs[Math.round(deg / 45) % 8];
     }
 
-    // 🖱️ Evento: clique no mapa → mostra clima no local
+    // ===== STYLE PICKER =====
+    const stylePicker = document.getElementById('stylePicker');
+    document.getElementById('styleToggle').addEventListener('click', e => {
+      e.stopPropagation();
+      stylePicker.classList.toggle('open');
+    });
+    document.addEventListener('click', () => stylePicker.classList.remove('open'));
+    stylePicker.addEventListener('click', e => e.stopPropagation());
+
+    document.querySelectorAll('.style-option').forEach(o => {
+      if (o.dataset.style === currentStyleKey) o.classList.add('active');
+      o.addEventListener('click', () => {
+        const s = o.dataset.style;
+        if (s === currentStyleKey) return;
+        map.removeLayer(currentLayer);
+        currentLayer = tileStyles[s];
+        currentLayer.addTo(map);
+        // Re-add weather overlays on top
+        activeOverlays.forEach(k => { weatherLayers[k].bringToFront(); });
+        currentStyleKey = s;
+        localStorage.setItem('map-style', s);
+        document.getElementById('currentStyleLabel').textContent = styleLabels[s];
+        document.querySelectorAll('.style-option').forEach(x => x.classList.toggle('active', x.dataset.style === s));
+      });
+    });
+
+    document.querySelectorAll('.toggle').forEach(t => {
+      t.addEventListener('click', () => {
+        const layer = t.dataset.layer;
+        t.classList.toggle('on');
+        if (t.classList.contains('on')) {
+          weatherLayers[layer].addTo(map);
+          activeOverlays.add(layer);
+        } else {
+          map.removeLayer(weatherLayers[layer]);
+          activeOverlays.delete(layer);
+        }
+      });
+    });
+
+    // ===== WEATHER CARD =====
+    const wcCard = document.getElementById('weatherCard');
+    const wcContent = document.getElementById('weatherContent');
+
+    function showWeatherLoading(coords) {
+      wcContent.innerHTML = `
+        <div class="wc-header">
+          <div class="wc-location">
+            <div class="wc-city">Carregando...</div>
+            <div class="wc-coord">${coords[0].toFixed(3)}, ${coords[1].toFixed(3)}</div>
+          </div>
+          <button class="wc-close" onclick="hideWeather()">×</button>
+        </div>
+        <div class="wc-loading"><div class="wc-spinner"></div>Obtendo dados meteorológicos...</div>`;
+      wcCard.classList.add('show');
+    }
+    function hideWeather() {
+      wcCard.classList.remove('show');
+    }
+    window.hideWeather = hideWeather;
+
+    function renderWeather(data, coords) {
+      const name = data.name || 'Local desconhecido';
+      const country = data.sys?.country ? ` · ${data.sys.country}` : '';
+      const temp = Math.round(data.main.temp);
+      const feels = Math.round(data.main.feels_like);
+      const desc = data.weather[0].description;
+      const icon = data.weather[0].icon;
+      wcContent.innerHTML = `
+        <div class="wc-header">
+          <div class="wc-location">
+            <div class="wc-city">${escapeHtml(name)}${country}</div>
+            <div class="wc-coord">${coords[0].toFixed(3)}, ${coords[1].toFixed(3)}</div>
+          </div>
+          <button class="wc-close" onclick="hideWeather()">×</button>
+        </div>
+        <div class="wc-main">
+          <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt=""/>
+          <div class="wc-temp">${temp}<span class="unit">°C</span></div>
+          <div class="wc-desc-block">
+            <div class="wc-desc">${escapeHtml(desc)}</div>
+            <div class="wc-feel">Sensação ${feels}°C</div>
+          </div>
+        </div>
+        <div class="wc-stats">
+          <div class="wc-stat">
+            <div class="wc-stat-label">💧 Umidade</div>
+            <div class="wc-stat-value">${data.main.humidity}%</div>
+          </div>
+          <div class="wc-stat">
+            <div class="wc-stat-label">💨 Vento</div>
+            <div class="wc-stat-value">${data.wind.speed.toFixed(1)} <span style="font-size:.8em;color:var(--text-dim-2)">${windDir(data.wind.deg || 0)}</span></div>
+          </div>
+          <div class="wc-stat">
+            <div class="wc-stat-label">📊 Pressão</div>
+            <div class="wc-stat-value">${data.main.pressure}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function fetchWeather(lat, lon) {
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=pt_br&appid=${API_KEY}`);
+      if (!res.ok) throw new Error('weather');
+      return res.json();
+    }
+
+    // ===== MAP CLICK =====
     map.on('click', async e => {
       const { lat, lng } = e.latlng;
+      if (currentMarker) map.removeLayer(currentMarker);
+      currentMarker = L.marker([lat, lng]).addTo(map);
+      showWeatherLoading([lat, lng]);
       try {
         const data = await fetchWeather(lat, lng);
-        const name = data.name || "Desconhecido";
-        const temp = data.main.temp.toFixed(1);
-        const desc = data.weather[0].description;
-        const icon = data.weather[0].icon;
-        const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
-        const wind = data.wind;
-
-        const popup = `
-          <div style="text-align:center">
-            <strong>${name}</strong><br>
-            <img src="${iconUrl}" style="width:40px"><br>
-            ${desc}, ${temp}°C<br>
-            💨 Vento: ${wind.speed} m/s (${windDirection(wind.deg)})
-          </div>
-        `;
-        L.popup().setLatLng(e.latlng).setContent(popup).openOn(map);
-        addToHistory(`${name} [${lat.toFixed(2)}, ${lng.toFixed(2)}]`);
+        renderWeather(data, [lat, lng]);
+        currentMarker.bindPopup(`<strong>${escapeHtml(data.name || 'Local')}</strong><br/>${Math.round(data.main.temp)}°C · ${escapeHtml(data.weather[0].description)}`).openPopup();
+        addHistory({
+          name: data.name || `${lat.toFixed(2)}, ${lng.toFixed(2)}`,
+          country: data.sys?.country || '',
+          lat, lon: lng,
+          temp: Math.round(data.main.temp),
+          icon: data.weather[0].icon,
+          ts: Date.now()
+        });
       } catch {
-        L.popup().setLatLng(e.latlng).setContent("❌ Erro ao obter clima.").openOn(map);
+        wcContent.innerHTML = `
+          <div class="wc-header">
+            <div class="wc-location">
+              <div class="wc-city">Erro ao buscar clima</div>
+              <div class="wc-coord">${lat.toFixed(3)}, ${lng.toFixed(3)}</div>
+            </div>
+            <button class="wc-close" onclick="hideWeather()">×</button>
+          </div>
+          <p style="font-size:13px;color:var(--text-dim-2);padding:10px 0;">Tente clicar mais próximo a uma área povoada.</p>`;
       }
     });
 
-    // 🔎 Função de busca por nome da cidade (usando OpenStreetMap Nominatim)
-    async function handleSearch(e) {
-      if (e.key === 'Enter') {
-        const q = e.target.value.trim();
-        if (!q) return;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
-        const data = await res.json();
-        if (!data.length) return alert("Cidade não encontrada.");
-        const { lat, lon } = data[0];
-        map.setView([lat, lon], 6);
-        map.fire('click', { latlng: { lat: parseFloat(lat), lng: parseFloat(lon) } });
+    // ===== HISTORY =====
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      document.getElementById('histCount').textContent = history.length;
+      if (history.length === 0) {
+        list.innerHTML = '<div class="history-empty">Clique no mapa para começar</div>';
+        return;
       }
+      list.innerHTML = history.slice().reverse().slice(0, 30).map(h => `
+        <div class="history-item" data-lat="${h.lat}" data-lon="${h.lon}">
+          <div class="hi-temp">${h.temp}°</div>
+          <div class="hi-content">
+            <div class="hi-name">${escapeHtml(h.name)}${h.country ? ' · ' + h.country : ''}</div>
+            <div class="hi-meta">${h.lat.toFixed(2)}, ${h.lon.toFixed(2)} · ${new Date(h.ts).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('.history-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const lat = parseFloat(el.dataset.lat);
+          const lon = parseFloat(el.dataset.lon);
+          map.setView([lat, lon], 8, { animate: true });
+          map.fire('click', { latlng: { lat, lng: lon } });
+        });
+      });
     }
+    function addHistory(item) {
+      history = history.filter(h => Math.abs(h.lat - item.lat) > 0.01 || Math.abs(h.lon - item.lon) > 0.01);
+      history.push(item);
+      if (history.length > 50) history = history.slice(-50);
+      localStorage.setItem('map-history', JSON.stringify(history));
+      renderHistory();
+    }
+    document.getElementById('historyClear').addEventListener('click', e => {
+      e.stopPropagation();
+      history = [];
+      localStorage.removeItem('map-history');
+      renderHistory();
+      showToast('Histórico limpo');
+    });
+
+    // Collapse history panel
+    const histPanel = document.getElementById('historyPanel');
+    document.getElementById('historyHeader').addEventListener('click', e => {
+      if (e.target.closest('.history-clear')) return;
+      histPanel.classList.toggle('collapsed');
+      const chev = document.getElementById('histChev');
+      chev.style.transform = histPanel.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+
+    renderHistory();
+
+    // ===== ACTION BUTTONS =====
+    document.getElementById('btnGeo').addEventListener('click', () => {
+      if (!navigator.geolocation) { showToast('Geolocalização não suportada'); return; }
+      showToast('Obtendo sua localização...');
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const { latitude, longitude } = pos.coords;
+          if (geoMarker) map.removeLayer(geoMarker);
+          const icon = L.divIcon({ className: '', html: '<div class="pulse-marker"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+          geoMarker = L.marker([latitude, longitude], { icon }).addTo(map);
+          map.setView([latitude, longitude], 10, { animate: true });
+          map.fire('click', { latlng: { lat: latitude, lng: longitude } });
+        },
+        () => showToast('Permissão de localização negada')
+      );
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      map.setView([20, 0], 3, { animate: true });
+    });
+
+    document.getElementById('btnClearMarkers').addEventListener('click', () => {
+      if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
+      if (geoMarker) { map.removeLayer(geoMarker); geoMarker = null; }
+      hideWeather();
+      showToast('Marcadores removidos');
+    });
+
+    // ===== SEARCH (Nominatim) =====
+    const searchInput = document.getElementById('searchInput');
+    const suggestions = document.getElementById('suggestions');
+    let searchTimer, highlightedIdx = -1, currentResults = [];
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      const q = searchInput.value.trim();
+      if (!q) {
+        suggestions.classList.remove('open');
+        currentResults = [];
+        return;
+      }
+      searchTimer = setTimeout(async () => {
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1`, {
+            headers: { 'Accept-Language': 'pt-BR' }
+          });
+          currentResults = await r.json();
+          renderSuggestions();
+        } catch {
+          suggestions.classList.remove('open');
+        }
+      }, 280);
+    });
+
+    function renderSuggestions() {
+      if (currentResults.length === 0) {
+        suggestions.classList.remove('open');
+        return;
+      }
+      suggestions.innerHTML = currentResults.map((r, i) => `
+        <div class="sg-item" data-idx="${i}">
+          <div class="sg-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          </div>
+          <div class="sg-content">
+            <div class="sg-name">${escapeHtml(r.name || r.display_name.split(',')[0])}</div>
+            <div class="sg-sub">${escapeHtml(r.display_name)}</div>
+          </div>
+        </div>
+      `).join('');
+      suggestions.classList.add('open');
+      suggestions.querySelectorAll('.sg-item').forEach(el => {
+        el.addEventListener('click', () => goToResult(parseInt(el.dataset.idx, 10)));
+      });
+      highlightedIdx = -1;
+    }
+
+    function goToResult(idx) {
+      const r = currentResults[idx];
+      if (!r) return;
+      const lat = parseFloat(r.lat);
+      const lon = parseFloat(r.lon);
+      map.setView([lat, lon], 10, { animate: true });
+      suggestions.classList.remove('open');
+      searchInput.value = r.name || r.display_name.split(',')[0];
+      map.fire('click', { latlng: { lat, lng: lon } });
+    }
+
+    searchInput.addEventListener('keydown', e => {
+      if (!currentResults.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlightedIdx = Math.min(highlightedIdx + 1, currentResults.length - 1);
+        updateHighlight();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlightedIdx = Math.max(highlightedIdx - 1, 0);
+        updateHighlight();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (highlightedIdx >= 0) goToResult(highlightedIdx);
+        else if (currentResults[0]) goToResult(0);
+      } else if (e.key === 'Escape') {
+        suggestions.classList.remove('open');
+        searchInput.blur();
+      }
+    });
+    function updateHighlight() {
+      suggestions.querySelectorAll('.sg-item').forEach((el, i) => {
+        el.classList.toggle('highlighted', i === highlightedIdx);
+      });
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-wrap')) suggestions.classList.remove('open');
+    });
+
+    // ===== COORDINATE HUD =====
+    const coordText = document.getElementById('coordText');
+    map.on('mousemove', e => {
+      coordText.textContent = `${e.latlng.lat.toFixed(4)}°, ${e.latlng.lng.toFixed(4)}°  ·  zoom ${map.getZoom()}`;
+    });
+    map.on('zoomend', () => {
+      coordText.textContent = `zoom ${map.getZoom()}`;
+    });
   </script>
 </body>
 </html>

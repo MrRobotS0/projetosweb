@@ -1,345 +1,1353 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Relógio Mundial</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relógio Mundial · Belinelo</title>
 
-    <!-- Bootstrap (estilo moderno e responsivo) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome (ícones visuais elegantes) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
 
-    <!-- Luxon (manipulação de data/hora com fusos) -->
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
+  <style>
+    :root {
+      --bg-1: #0a0a1a;
+      --bg-2: #050510;
+      --glow-1: rgba(124, 92, 255, 0.32);
+      --glow-2: rgba(0, 216, 255, 0.22);
+      --glow-3: rgba(255, 78, 205, 0.18);
+      --surface: rgba(255,255,255,0.04);
+      --surface-2: rgba(255,255,255,0.08);
+      --surface-3: rgba(255,255,255,0.12);
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #ffffff;
+      --text-dim: #cbd5e1;
+      --text-dim-2: #94a3b8;
+      --accent: #7c5cff;
+      --accent-2: #00d8ff;
+      --accent-grad: linear-gradient(135deg, #7c5cff, #00d8ff);
+      --success: #22c55e;
+      --warn: #fbbf24;
+      --danger: #ff4c6a;
+    }
 
-    <style>
-        /* ======== ESTILOS GERAIS E TEMAS ======== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Inter', system-ui, sans-serif; height: 100%; }
+    body {
+      background:
+        radial-gradient(900px 500px at 15% 0%, var(--glow-1), transparent 60%),
+        radial-gradient(700px 500px at 100% 30%, var(--glow-2), transparent 60%),
+        radial-gradient(800px 600px at 50% 120%, var(--glow-3), transparent 60%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 14px;
+      overflow: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            transition: background 0.5s, color 0.5s;
-        }
+    .wrap {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+      position: relative;
+      z-index: 1;
+    }
 
-        /* Temas com gradientes e cores principais */
-        .theme-dark {
-            background: linear-gradient(to right, #1c1c1c, #2c3e50);
-            color: white;
-        }
+    /* ============ TOP BAR ============ */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all .25s ease;
+    }
+    .back-link:hover { color: var(--text); border-color: var(--border-strong); transform: translateX(-2px); }
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .page-title .dot { color: var(--accent); }
+    .icon-btn {
+      width: 38px; height: 38px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .icon-btn:hover {
+      color: var(--text);
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+    }
 
-        .theme-light {
-            background: linear-gradient(to right, #ffffff, #e8e8e8);
-            color: #111;
-        }
+    /* ============ HERO LOCAL CLOCK ============ */
+    .hero {
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px; top: -40px;
+      width: 220px; height: 220px;
+      background: var(--accent-grad);
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .hero-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim-2);
+      font-weight: 600;
+    }
+    .hero-date {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .hero-zone {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+    .hero-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(2.6rem, 6vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      background: linear-gradient(180deg, #fff, #c5b8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      position: relative;
+    }
+    .hero-seconds {
+      font-size: 0.5em;
+      opacity: 0.5;
+      vertical-align: top;
+      margin-left: 6px;
+    }
+    .hero-greeting {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .hero-greeting .ico {
+      font-size: 1.2rem;
+    }
 
-        .theme-neon {
-            background: linear-gradient(135deg, #000000, #0f0f0f);
-            color: #39ff14;
-        }
+    /* ============ TABS ============ */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: fit-content;
+      flex-shrink: 0;
+    }
+    .tab {
+      padding: 9px 18px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 9px;
+      font-family: inherit;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all .2s ease;
+    }
+    .tab:hover { color: var(--text); background: var(--surface-3); }
+    .tab.active {
+      background: var(--accent-grad);
+      color: white;
+      box-shadow: 0 6px 16px -6px var(--glow-1);
+    }
 
-        .theme-solarized {
-            background: linear-gradient(to right, #002b36, #073642);
-            color: #b58900;
-        }
+    /* ============ PANES ============ */
+    .pane {
+      flex: 1;
+      min-height: 0;
+      display: none;
+      flex-direction: column;
+    }
+    .pane.active { display: flex; }
 
-        .theme-cyber {
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-            color: #00ffff;
-        }
+    /* === WORLD CLOCKS === */
+    .world-toolbar {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .add-city {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .add-city:hover { background: var(--surface-2); border-color: var(--accent); }
+    .preset-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .preset-chip {
+      padding: 7px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      color: var(--text-dim);
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .preset-chip:hover { color: var(--text); border-color: var(--border-strong); }
 
-        .theme-purple-night {
-            background: linear-gradient(to right, #2c003e, #12002f);
-            color: #c084fc;
-        }
+    .world-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      overflow-y: auto;
+      align-content: start;
+      padding-right: 4px;
+    }
+    .world-grid::-webkit-scrollbar { width: 6px; }
+    .world-grid::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
 
-        /* ======== COMPONENTES ======== */
+    .city-card {
+      position: relative;
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      transition: all .25s ease;
+      overflow: hidden;
+    }
+    .city-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      box-shadow: 0 18px 40px -12px rgba(124,92,255,0.25);
+    }
+    .city-card.daytime::before {
+      content: "";
+      position: absolute;
+      right: -30px; top: -30px;
+      width: 100px; height: 100px;
+      background: radial-gradient(circle, rgba(251,191,36,0.35), transparent 70%);
+      pointer-events: none;
+    }
+    .city-card.nighttime::before {
+      content: "";
+      position: absolute;
+      right: -30px; top: -30px;
+      width: 100px; height: 100px;
+      background: radial-gradient(circle, rgba(124,92,255,0.35), transparent 70%);
+      pointer-events: none;
+    }
+    .city-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .city-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .city-icon {
+      width: 28px; height: 28px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      background: var(--surface-3);
+      font-size: 0.95rem;
+    }
+    .city-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+    .city-time .secs {
+      font-size: 0.6em;
+      opacity: 0.55;
+      margin-left: 4px;
+    }
+    .city-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px;
+      color: var(--text-dim-2);
+      margin-top: 6px;
+    }
+    .city-diff {
+      padding: 2px 8px;
+      background: var(--surface-3);
+      border-radius: 9999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+    .city-diff.future { color: #86efac; }
+    .city-diff.past { color: #fda4a4; }
+    .city-remove {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 22px; height: 22px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s ease;
+    }
+    .city-card:hover .city-remove { display: inline-flex; }
+    .city-remove:hover { background: var(--danger); color: white; border-color: var(--danger); }
 
-        .clock-box {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 10px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
+    /* === STOPWATCH === */
+    .center-pane {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+    .stopwatch-box {
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 40px;
+      min-width: 380px;
+      max-width: 720px;
+      width: 100%;
+      display: flex;
+      gap: 32px;
+      align-items: stretch;
+    }
+    @media (max-width: 800px) {
+      .stopwatch-box { flex-direction: column; padding: 24px; }
+    }
+    .sw-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+    .sw-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(3rem, 8vw, 5rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(180deg, #fff, #c5b8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-align: center;
+    }
+    .sw-display .cs {
+      font-size: 0.45em;
+      opacity: 0.5;
+      margin-left: 6px;
+    }
+    .sw-running .sw-display .cs {
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 0.7; }
+      50.01%, 100% { opacity: 0.2; }
+    }
+    .sw-controls {
+      display: flex; gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ctrl-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .ctrl-btn.primary {
+      background: var(--accent-grad);
+      color: white;
+      box-shadow: 0 8px 24px -8px var(--glow-1);
+    }
+    .ctrl-btn.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .ctrl-btn.warn {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--warn);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+    .ctrl-btn.warn:hover { background: rgba(251, 191, 36, 0.25); }
+    .ctrl-btn.danger {
+      background: rgba(255, 76, 106, 0.12);
+      color: var(--danger);
+      border: 1px solid rgba(255, 76, 106, 0.3);
+    }
+    .ctrl-btn.danger:hover { background: rgba(255, 76, 106, 0.22); }
+    .ctrl-btn.ghost {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .ctrl-btn.ghost:hover { background: var(--surface-2); border-color: var(--border-strong); }
 
-        /* Estilo adaptado por tema */
-        .theme-light .clock-box {
-            background: #fff;
-            color: #111;
-        }
+    .sw-laps {
+      flex: 1;
+      max-width: 280px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .sw-laps-title {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .sw-laps-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 4px;
+      max-height: 320px;
+    }
+    .sw-laps-list::-webkit-scrollbar { width: 6px; }
+    .sw-laps-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+    .lap-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    .lap-row.best { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
+    .lap-row.worst { border-color: rgba(255,76,106,0.4); background: rgba(255,76,106,0.08); }
+    .lap-num { color: var(--text-dim-2); font-weight: 700; }
+    .lap-split { color: var(--text-dim); }
+    .lap-time { color: var(--text); font-weight: 600; }
+    .lap-empty {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--text-dim-2);
+      font-size: 12px;
+      font-style: italic;
+    }
 
-        .theme-neon .clock-box,
-        .theme-cyber .clock-box,
-        .theme-solarized .clock-box,
-        .theme-purple-night .clock-box {
-            background: #111;
-            border: 1px solid currentColor;
-        }
+    /* === TIMER === */
+    .timer-box {
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 520px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+    }
+    .timer-presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .preset-btn {
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .preset-btn:hover { color: var(--text); border-color: var(--border-strong); }
+    .preset-btn.active {
+      background: var(--surface-3);
+      color: var(--accent-2);
+      border-color: var(--accent);
+    }
 
-        .time-display {
-            font-size: 2em;
-            font-weight: bold;
-        }
+    .timer-ring {
+      position: relative;
+      width: 280px; height: 280px;
+    }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .timer-ring-display {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .timer-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      background: linear-gradient(180deg, #fff, #c5b8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .timer-time.done {
+      background: var(--danger);
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: pulseTime 0.8s infinite;
+    }
+    @keyframes pulseTime {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.95); }
+    }
+    .timer-label {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim-2);
+      font-weight: 600;
+    }
 
-        .section-title {
-            margin-top: 40px;
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+    }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
+    .timer-custom {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+    .timer-custom input {
+      width: 50px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      text-align: center;
+      outline: none;
+    }
+    .timer-custom span {
+      font-size: 11px;
+      color: var(--text-dim-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
-        /* ======== INPUT DE TIMER ======== */
+    /* ============ ADD CITY MODAL ============ */
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      padding: 20px;
+    }
+    .modal.open { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 460px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: scale(0.95) translateY(10px);
+      transition: transform .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal.open .modal-card { transform: scale(1) translateY(0); }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    .modal-close {
+      background: transparent; border: none;
+      color: var(--text-dim);
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    .modal-close:hover { background: var(--surface); color: var(--text); }
+    .modal-body { padding: 16px 20px; overflow: hidden; display: flex; flex-direction: column; gap: 12px; }
+    .modal-body input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .modal-body input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow-1);
+    }
+    .city-list {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .city-list::-webkit-scrollbar { width: 6px; }
+    .city-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+    .city-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-size: 13px;
+    }
+    .city-opt:hover {
+      background: var(--surface-2);
+      border-color: var(--accent);
+      transform: translateX(2px);
+    }
+    .city-opt .flag { font-size: 1.2rem; }
+    .city-opt .name { flex: 1; font-weight: 600; }
+    .city-opt .zone { font-size: 11px; color: var(--text-dim-2); font-family: 'JetBrains Mono', monospace; }
 
-        .custom-input {
-            background-color: transparent;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            transition: all 0.3s ease;
-        }
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all .3s ease;
+      z-index: 3000;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        .custom-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .custom-input:focus {
-            border-color: #00ffff;
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
-        }
-
-        .input-group-text {
-            color: rgba(255, 255, 255, 0.8);
-            background-color: transparent;
-        }
-
-        .custom-input-group .form-control,
-        .custom-input-group .input-group-text {
-            border-radius: 0.375rem;
-        }
-
-        /* ======== AJUSTES POR TEMA PARA INPUT ======== */
-        .theme-light .custom-input {
-            color: #111 !important;
-            border: 1px solid rgba(0, 0, 0, 0.3);
-        }
-
-        .theme-light .custom-input:focus {
-            background-color: rgba(255, 255, 255, 0.7);
-            color: #111 !important;
-            border-color: #0d6efd;
-            box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
-        }
-
-        .theme-light .custom-input::placeholder {
-            color: rgba(0, 0, 0, 0.5);
-        }
-
-        .theme-light .input-group-text {
-            color: #111;
-            border: 1px solid rgba(0, 0, 0, 0.3);
-        }
-    </style>
+    @media (max-width: 600px) {
+      .hero { flex-direction: column; align-items: flex-start; padding: 16px; gap: 8px; }
+      .hero-time { font-size: 3rem; }
+      .city-card { padding: 14px; }
+      .city-time { font-size: 1.5rem; }
+      .timer-ring { width: 220px; height: 220px; }
+      .timer-time { font-size: 2.2rem; }
+    }
+  </style>
 </head>
+<body>
 
-<body class="theme-dark">
+  <div class="wrap">
 
-    <div class="container py-5">
-        <h1 class="text-center mb-4"><i class="fas fa-globe"></i> Relógio Mundial</h1>
-
-        <!-- Botão para alternar entre os temas -->
-        <div class="theme-toggle">
-            <button class="btn btn-outline-light" onclick="cycleTheme()">Alterar Tema</button>
-        </div>
-
-        <!-- Relógio Mundial (mostra horário em várias cidades) -->
-        <div class="section-title">Horário Atual em Várias Cidades</div>
-        <div class="row" id="world-clocks"></div>
-
-        <!-- Cronômetro com controles -->
-        <div class="section-title">Cronômetro</div>
-        <div class="clock-box text-center">
-            <div id="stopwatch" class="time-display">00:00:00</div>
-            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-                <button class="btn btn-outline-success" onclick="startStopwatch()" data-bs-toggle="tooltip"
-                    title="Iniciar Cronômetro">
-                    <i class="fas fa-play"></i>
-                </button>
-                <button class="btn btn-outline-warning" onclick="pauseStopwatch()" data-bs-toggle="tooltip"
-                    title="Pausar Cronômetro">
-                    <i class="fas fa-pause"></i>
-                </button>
-                <button class="btn btn-outline-danger" onclick="resetStopwatch()" data-bs-toggle="tooltip"
-                    title="Zerar Cronômetro">
-                    <i class="fas fa-rotate-left"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Timer com entrada customizada e controles -->
-        <div class="section-title">Timer Regressivo</div>
-        <div class="clock-box text-center">
-            <div class="mb-4 w-50 mx-auto">
-                <label for="timerInput" class="form-label text-center d-block">Tempo do Timer (em minutos)</label>
-                <div class="input-group custom-input-group">
-                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                    <input type="number" class="form-control custom-input" id="timerInput" value="2" min="1" max="120"
-                        placeholder="Ex: 5" />
-                    <span class="input-group-text">min</span>
-                </div>
-            </div>
-
-            <div id="timer" class="time-display">02:00</div>
-            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-                <button class="btn btn-outline-primary" onclick="startTimer()" data-bs-toggle="tooltip"
-                    title="Iniciar Timer">
-                    <i class="fas fa-hourglass-start"></i>
-                </button>
-                <button class="btn btn-outline-secondary" onclick="pauseTimer()" data-bs-toggle="tooltip"
-                    title="Pausar Timer">
-                    <i class="fas fa-pause-circle"></i>
-                </button>
-                <button class="btn btn-outline-danger" onclick="resetTimer()" data-bs-toggle="tooltip"
-                    title="Resetar Timer">
-                    <i class="fas fa-rotate-left"></i>
-                </button>
-            </div>
-        </div>
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Voltar
+        </a>
+        <div class="page-title">🕓 Relógio<span class="dot">.</span></div>
+      </div>
+      <button class="icon-btn" id="btnNotify" title="Notificações">
+        <svg id="iconNotify" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      </button>
     </div>
 
-    <!-- Scripts principais -->
-    <script>
-        const { DateTime } = luxon;
+    <!-- HERO LOCAL -->
+    <div class="hero">
+      <div class="hero-info">
+        <div class="hero-eyebrow">📍 Seu horário local</div>
+        <div class="hero-date" id="heroDate">—</div>
+        <div class="hero-zone" id="heroZone">—</div>
+        <div class="hero-greeting" id="heroGreeting"></div>
+      </div>
+      <div class="hero-time" id="heroTime">00:00<span class="hero-seconds" id="heroSecs">00</span></div>
+    </div>
 
-        // Lista de cidades e seus fusos horários
-        const cities = [
-            { name: "São Paulo", zone: "America/Sao_Paulo" },
-            { name: "Nova York", zone: "America/New_York" },
-            { name: "Londres", zone: "Europe/London" },
-            { name: "Tóquio", zone: "Asia/Tokyo" },
-            { name: "Sydney", zone: "Australia/Sydney" },
-            { name: "Dubai", zone: "Asia/Dubai" }
-        ];
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" data-pane="world">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Mundo
+      </button>
+      <button class="tab" data-pane="stopwatch">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 1h6"/></svg>
+        Cronômetro
+      </button>
+      <button class="tab" data-pane="timer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13v-4M19 5l-2-2M5 5l2-2"/></svg>
+        Timer
+      </button>
+    </div>
 
-        // Atualiza os relógios a cada segundo
-        function updateWorldClocks() {
-            const container = document.getElementById('world-clocks');
-            container.innerHTML = '';
-            cities.forEach(city => {
-                const dt = DateTime.now().setZone(city.zone);
-                container.innerHTML += `
-          <div class="col-md-4">
-            <div class="clock-box">
-              <h5>${city.name}</h5>
-              <div class="time-display">${dt.toFormat('HH:mm:ss')}</div>
-              <small>Fuso horário: ${dt.offsetNameShort} (UTC${dt.toFormat("Z")})</small>
+    <!-- PANE: WORLD -->
+    <div class="pane active" id="pane-world">
+      <div class="world-toolbar">
+        <button class="add-city" id="btnAddCity">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Adicionar cidade
+        </button>
+      </div>
+      <div class="world-grid" id="worldGrid"></div>
+    </div>
+
+    <!-- PANE: STOPWATCH -->
+    <div class="pane" id="pane-stopwatch">
+      <div class="center-pane">
+        <div class="stopwatch-box">
+          <div class="sw-main" id="swMain">
+            <div class="sw-display" id="swDisplay">00:00:00<span class="cs">.00</span></div>
+            <div class="sw-controls">
+              <button class="ctrl-btn primary" id="swStart">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span id="swStartLabel">Iniciar</span>
+              </button>
+              <button class="ctrl-btn ghost" id="swLap" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Volta
+              </button>
+              <button class="ctrl-btn danger" id="swReset">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+                Zerar
+              </button>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim-2);">Pressione <kbd style="padding:2px 6px;background:var(--surface-3);border:1px solid var(--border);border-radius:4px;font-family:inherit;">Espaço</kbd> para iniciar/pausar</div>
+          </div>
+          <div class="sw-laps">
+            <div class="sw-laps-title">
+              <span>Voltas</span>
+              <span id="lapCount">0</span>
+            </div>
+            <div class="sw-laps-list" id="lapsList">
+              <div class="lap-empty">Nenhuma volta registrada</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE: TIMER -->
+    <div class="pane" id="pane-timer">
+      <div class="center-pane">
+        <div class="timer-box">
+          <div class="timer-presets">
+            <button class="preset-btn" data-min="1">1 min</button>
+            <button class="preset-btn" data-min="5">5 min</button>
+            <button class="preset-btn active" data-min="10">10 min</button>
+            <button class="preset-btn" data-min="15">15 min</button>
+            <button class="preset-btn" data-min="25">🍅 Pomodoro</button>
+            <button class="preset-btn" data-min="45">45 min</button>
+          </div>
+          <div class="timer-ring">
+            <svg width="280" height="280" viewBox="0 0 280 280">
+              <defs>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#7c5cff"/>
+                  <stop offset="100%" stop-color="#00d8ff"/>
+                </linearGradient>
+              </defs>
+              <circle cx="140" cy="140" r="128" stroke="rgba(255,255,255,0.08)" stroke-width="10" fill="none"/>
+              <circle id="timerProgress" cx="140" cy="140" r="128" stroke="url(#ringGrad)" stroke-width="10" fill="none"
+                      stroke-linecap="round" stroke-dasharray="804.25" stroke-dashoffset="0"
+                      style="transition: stroke-dashoffset .9s linear;"/>
+            </svg>
+            <div class="timer-ring-display">
+              <div class="timer-time" id="timerDisplay">10:00</div>
+              <div class="timer-label" id="timerLabel">10 minutos</div>
+            </div>
+          </div>
+          <div class="timer-custom">
+            <span>Custom:</span>
+            <input id="customMin" type="number" min="1" max="999" value="10"/>
+            <span>min</span>
+            <input id="customSec" type="number" min="0" max="59" value="0"/>
+            <span>seg</span>
+          </div>
+          <div class="timer-controls">
+            <button class="ctrl-btn primary" id="tmStart">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span id="tmStartLabel">Iniciar</span>
+            </button>
+            <button class="ctrl-btn danger" id="tmReset">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+              Resetar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADD CITY MODAL -->
+  <div class="modal" id="modalCity">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🌍 Adicionar Cidade</div>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <input id="cityFilter" type="text" placeholder="Filtrar cidades..." autocomplete="off"/>
+        <div class="city-list" id="cityList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const { DateTime } = luxon;
+
+    const PRESET_CITIES = [
+      { name: 'São Paulo', zone: 'America/Sao_Paulo', flag: '🇧🇷' },
+      { name: 'Rio de Janeiro', zone: 'America/Sao_Paulo', flag: '🇧🇷' },
+      { name: 'Brasília', zone: 'America/Sao_Paulo', flag: '🇧🇷' },
+      { name: 'Nova York', zone: 'America/New_York', flag: '🇺🇸' },
+      { name: 'Los Angeles', zone: 'America/Los_Angeles', flag: '🇺🇸' },
+      { name: 'Chicago', zone: 'America/Chicago', flag: '🇺🇸' },
+      { name: 'Cidade do México', zone: 'America/Mexico_City', flag: '🇲🇽' },
+      { name: 'Buenos Aires', zone: 'America/Argentina/Buenos_Aires', flag: '🇦🇷' },
+      { name: 'Londres', zone: 'Europe/London', flag: '🇬🇧' },
+      { name: 'Paris', zone: 'Europe/Paris', flag: '🇫🇷' },
+      { name: 'Berlim', zone: 'Europe/Berlin', flag: '🇩🇪' },
+      { name: 'Madri', zone: 'Europe/Madrid', flag: '🇪🇸' },
+      { name: 'Roma', zone: 'Europe/Rome', flag: '🇮🇹' },
+      { name: 'Lisboa', zone: 'Europe/Lisbon', flag: '🇵🇹' },
+      { name: 'Moscou', zone: 'Europe/Moscow', flag: '🇷🇺' },
+      { name: 'Tóquio', zone: 'Asia/Tokyo', flag: '🇯🇵' },
+      { name: 'Seul', zone: 'Asia/Seoul', flag: '🇰🇷' },
+      { name: 'Pequim', zone: 'Asia/Shanghai', flag: '🇨🇳' },
+      { name: 'Hong Kong', zone: 'Asia/Hong_Kong', flag: '🇭🇰' },
+      { name: 'Singapura', zone: 'Asia/Singapore', flag: '🇸🇬' },
+      { name: 'Bangkok', zone: 'Asia/Bangkok', flag: '🇹🇭' },
+      { name: 'Mumbai', zone: 'Asia/Kolkata', flag: '🇮🇳' },
+      { name: 'Dubai', zone: 'Asia/Dubai', flag: '🇦🇪' },
+      { name: 'Sydney', zone: 'Australia/Sydney', flag: '🇦🇺' },
+      { name: 'Auckland', zone: 'Pacific/Auckland', flag: '🇳🇿' },
+      { name: 'Cairo', zone: 'Africa/Cairo', flag: '🇪🇬' },
+      { name: 'Joanesburgo', zone: 'Africa/Johannesburg', flag: '🇿🇦' },
+      { name: 'Cidade do Cabo', zone: 'Africa/Johannesburg', flag: '🇿🇦' },
+      { name: 'Honolulu', zone: 'Pacific/Honolulu', flag: '🇺🇸' },
+      { name: 'Anchorage', zone: 'America/Anchorage', flag: '🇺🇸' }
+    ];
+
+    const toast = document.getElementById('toast');
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    // ============ TABS ============
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById('pane-' + t.dataset.pane).classList.add('active');
+      });
+    });
+
+    // ============ LOCAL HERO ============
+    function updateHero() {
+      const dt = DateTime.now();
+      const hh = String(dt.hour).padStart(2,'0');
+      const mm = String(dt.minute).padStart(2,'0');
+      const ss = String(dt.second).padStart(2,'0');
+      document.getElementById('heroTime').innerHTML = `${hh}:${mm}<span class="hero-seconds">${ss}</span>`;
+      document.getElementById('heroDate').textContent = dt.setLocale('pt-BR').toFormat('cccc, dd \'de\' LLLL \'de\' yyyy');
+      document.getElementById('heroZone').textContent = `${dt.zoneName} · UTC${dt.toFormat('Z')}`;
+
+      // Greeting
+      const h = dt.hour;
+      let greet = '', ico = '';
+      if (h < 5) { greet = 'Boa madrugada'; ico = '🌙'; }
+      else if (h < 12) { greet = 'Bom dia'; ico = '☀️'; }
+      else if (h < 18) { greet = 'Boa tarde'; ico = '🌤️'; }
+      else { greet = 'Boa noite'; ico = '🌙'; }
+      document.getElementById('heroGreeting').innerHTML = `<span class="ico">${ico}</span> ${greet}`;
+    }
+
+    // ============ WORLD CLOCKS ============
+    const defaultCities = ['America/Sao_Paulo', 'America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney', 'Asia/Dubai'];
+    let cities = JSON.parse(localStorage.getItem('world-cities') || 'null');
+    if (!cities) {
+      cities = defaultCities.map(z => PRESET_CITIES.find(c => c.zone === z)).filter(Boolean);
+      localStorage.setItem('world-cities', JSON.stringify(cities));
+    }
+
+    function isDaytime(hour) { return hour >= 6 && hour < 19; }
+
+    function renderWorldClocks() {
+      const grid = document.getElementById('worldGrid');
+      const now = DateTime.now();
+      grid.innerHTML = cities.map((city, idx) => {
+        const dt = now.setZone(city.zone);
+        const hh = String(dt.hour).padStart(2, '0');
+        const mm = String(dt.minute).padStart(2, '0');
+        const ss = String(dt.second).padStart(2, '0');
+        const day = isDaytime(dt.hour);
+        const localOffset = now.offset / 60;
+        const cityOffset = dt.offset / 60;
+        const diff = cityOffset - localOffset;
+        const diffClass = diff > 0 ? 'future' : (diff < 0 ? 'past' : '');
+        const diffStr = diff === 0 ? 'mesmo fuso' : `${diff > 0 ? '+' : ''}${diff}h`;
+        const sameDay = dt.hasSame(now, 'day');
+        const dateStr = sameDay ? '' : dt.setLocale('pt-BR').toFormat('dd LLL');
+        return `
+          <div class="city-card ${day ? 'daytime' : 'nighttime'}" data-idx="${idx}">
+            <button class="city-remove" title="Remover" data-remove="${idx}">×</button>
+            <div class="city-head">
+              <div>
+                <div class="city-name">${city.flag || '🌍'} ${city.name}</div>
+              </div>
+              <div class="city-icon">${day ? '☀️' : '🌙'}</div>
+            </div>
+            <div class="city-time">${hh}:${mm}<span class="secs">${ss}</span></div>
+            <div class="city-meta">
+              <span>${dt.toFormat('ZZZZ')} ${dateStr ? '· ' + dateStr : ''}</span>
+              <span class="city-diff ${diffClass}">${diffStr}</span>
             </div>
           </div>`;
-            });
-        }
-
-        setInterval(updateWorldClocks, 1000);
-        updateWorldClocks();
-
-        // Cronômetro (inicia, pausa, zera)
-        let stopwatchInterval, stopwatchTime = 0;
-
-        function startStopwatch() {
-            if (!stopwatchInterval) {
-                stopwatchInterval = setInterval(() => {
-                    stopwatchTime++;
-                    displayStopwatch();
-                }, 1000);
-            }
-        }
-
-        function pauseStopwatch() {
-            clearInterval(stopwatchInterval);
-            stopwatchInterval = null;
-        }
-
-        function resetStopwatch() {
-            pauseStopwatch();
-            stopwatchTime = 0;
-            displayStopwatch();
-        }
-
-        function displayStopwatch() {
-            const hrs = String(Math.floor(stopwatchTime / 3600)).padStart(2, '0');
-            const mins = String(Math.floor((stopwatchTime % 3600) / 60)).padStart(2, '0');
-            const secs = String(stopwatchTime % 60).padStart(2, '0');
-            document.getElementById('stopwatch').textContent = `${hrs}:${mins}:${secs}`;
-        }
-
-        // Timer regressivo
-        let timerInterval, timerTime = 120;
-
-        function startTimer() {
-            const inputMinutes = parseInt(document.getElementById('timerInput').value) || 2;
-            if (!timerInterval) {
-                if (timerTime === 0) {
-                    timerTime = inputMinutes * 60;
-                }
-                timerInterval = setInterval(() => {
-                    if (timerTime > 0) {
-                        timerTime--;
-                        displayTimer();
-                    } else {
-                        clearInterval(timerInterval);
-                        timerInterval = null;
-                        alert("⏰ O tempo acabou!");
-                    }
-                }, 1000);
-            }
-        }
-
-        function pauseTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-
-        function resetTimer() {
-            pauseTimer();
-            const inputMinutes = parseInt(document.getElementById('timerInput').value) || 2;
-            timerTime = inputMinutes * 60;
-            displayTimer();
-        }
-
-        function displayTimer() {
-            const mins = String(Math.floor(timerTime / 60)).padStart(2, '0');
-            const secs = String(timerTime % 60).padStart(2, '0');
-            document.getElementById('timer').textContent = `${mins}:${secs}`;
-        }
-
-        resetTimer();
-
-        // Alternância de temas
-        const themes = ['theme-dark', 'theme-light', 'theme-neon', 'theme-solarized', 'theme-cyber', 'theme-purple-night'];
-        let currentThemeIndex = 0;
-
-        function cycleTheme() {
-            document.body.classList.remove(themes[currentThemeIndex]);
-            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-            document.body.classList.add(themes[currentThemeIndex]);
-        }
-    </script>
-
-    <!-- Script do Bootstrap para tooltips -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Ativa os tooltips assim que a página carrega
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-            new bootstrap.Tooltip(el);
+      }).join('');
+      grid.querySelectorAll('[data-remove]').forEach(b => {
+        b.addEventListener('click', e => {
+          e.stopPropagation();
+          const i = parseInt(b.dataset.remove, 10);
+          cities.splice(i, 1);
+          localStorage.setItem('world-cities', JSON.stringify(cities));
+          renderWorldClocks();
+          showToast('Cidade removida');
         });
-    </script>
+      });
+    }
 
+    // Add city modal
+    const modal = document.getElementById('modalCity');
+    document.getElementById('btnAddCity').addEventListener('click', () => {
+      renderCityList();
+      modal.classList.add('open');
+      setTimeout(() => document.getElementById('cityFilter').focus(), 200);
+    });
+    document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+    function renderCityList(filter = '') {
+      const list = document.getElementById('cityList');
+      const f = filter.toLowerCase().trim();
+      const filtered = PRESET_CITIES.filter(c =>
+        !cities.some(x => x.zone === c.zone && x.name === c.name) &&
+        (!f || c.name.toLowerCase().includes(f) || c.zone.toLowerCase().includes(f))
+      );
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="lap-empty">Nenhuma cidade disponível</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(c => `
+        <button class="city-opt" data-name="${c.name}" data-zone="${c.zone}" data-flag="${c.flag}">
+          <span class="flag">${c.flag}</span>
+          <span class="name">${c.name}</span>
+          <span class="zone">${c.zone.split('/').pop()}</span>
+        </button>
+      `).join('');
+      list.querySelectorAll('.city-opt').forEach(b => {
+        b.addEventListener('click', () => {
+          cities.push({ name: b.dataset.name, zone: b.dataset.zone, flag: b.dataset.flag });
+          localStorage.setItem('world-cities', JSON.stringify(cities));
+          renderWorldClocks();
+          modal.classList.remove('open');
+          showToast(`${b.dataset.flag} ${b.dataset.name} adicionada`);
+        });
+      });
+    }
+    document.getElementById('cityFilter').addEventListener('input', e => renderCityList(e.target.value));
+
+    // ============ STOPWATCH ============
+    let swStart = 0, swElapsed = 0, swRunning = false, swInterval = null;
+    let laps = [];
+
+    function fmtSW(ms) {
+      const total = Math.floor(ms);
+      const cs = Math.floor((total % 1000) / 10);
+      const s = Math.floor((total / 1000) % 60);
+      const m = Math.floor((total / 60000) % 60);
+      const h = Math.floor(total / 3600000);
+      const pad = n => String(n).padStart(2, '0');
+      return { main: `${pad(h)}:${pad(m)}:${pad(s)}`, cs: pad(cs) };
+    }
+
+    function updateSW() {
+      const elapsed = swRunning ? (swElapsed + (Date.now() - swStart)) : swElapsed;
+      const f = fmtSW(elapsed);
+      document.getElementById('swDisplay').innerHTML = `${f.main}<span class="cs">.${f.cs}</span>`;
+    }
+
+    document.getElementById('swStart').addEventListener('click', () => {
+      if (!swRunning) {
+        swStart = Date.now();
+        swRunning = true;
+        swInterval = setInterval(updateSW, 33);
+        document.getElementById('swStartLabel').textContent = 'Pausar';
+        document.getElementById('swStart').classList.remove('primary');
+        document.getElementById('swStart').classList.add('warn');
+        document.getElementById('swStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        document.getElementById('swLap').disabled = false;
+        document.getElementById('swMain').classList.add('sw-running');
+      } else {
+        swElapsed += Date.now() - swStart;
+        swRunning = false;
+        clearInterval(swInterval);
+        document.getElementById('swStartLabel').textContent = 'Continuar';
+        document.getElementById('swStart').classList.remove('warn');
+        document.getElementById('swStart').classList.add('primary');
+        document.getElementById('swStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+        document.getElementById('swMain').classList.remove('sw-running');
+      }
+    });
+
+    document.getElementById('swLap').addEventListener('click', () => {
+      if (!swRunning) return;
+      const elapsed = swElapsed + (Date.now() - swStart);
+      const prev = laps.length ? laps[laps.length - 1].total : 0;
+      laps.push({ total: elapsed, split: elapsed - prev });
+      renderLaps();
+    });
+
+    document.getElementById('swReset').addEventListener('click', () => {
+      swRunning = false;
+      swElapsed = 0;
+      clearInterval(swInterval);
+      laps = [];
+      renderLaps();
+      updateSW();
+      document.getElementById('swStartLabel').textContent = 'Iniciar';
+      document.getElementById('swStart').classList.remove('warn');
+      document.getElementById('swStart').classList.add('primary');
+      document.getElementById('swStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+      document.getElementById('swLap').disabled = true;
+      document.getElementById('swMain').classList.remove('sw-running');
+    });
+
+    function renderLaps() {
+      const list = document.getElementById('lapsList');
+      document.getElementById('lapCount').textContent = laps.length;
+      if (laps.length === 0) {
+        list.innerHTML = '<div class="lap-empty">Nenhuma volta registrada</div>';
+        return;
+      }
+      const splits = laps.map(l => l.split);
+      const best = Math.min(...splits);
+      const worst = Math.max(...splits);
+      list.innerHTML = laps.slice().reverse().map((l, ri) => {
+        const idx = laps.length - 1 - ri;
+        const splitF = fmtSW(l.split);
+        const totalF = fmtSW(l.total);
+        const cls = (splits.length > 1) ? (l.split === best ? 'best' : (l.split === worst ? 'worst' : '')) : '';
+        return `
+          <div class="lap-row ${cls}">
+            <span class="lap-num">${String(idx + 1).padStart(2,'0')}</span>
+            <span class="lap-split">+${splitF.main}.${splitF.cs}</span>
+            <span class="lap-time">${totalF.main}.${totalF.cs}</span>
+          </div>`;
+      }).join('');
+    }
+
+    // Keyboard shortcut: space toggles stopwatch if its tab is active
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === ' ') {
+        if (document.getElementById('pane-stopwatch').classList.contains('active')) {
+          e.preventDefault();
+          document.getElementById('swStart').click();
+        } else if (document.getElementById('pane-timer').classList.contains('active')) {
+          e.preventDefault();
+          document.getElementById('tmStart').click();
+        }
+      }
+    });
+
+    // ============ TIMER ============
+    let tmTotal = 600, tmRemain = 600, tmRunning = false, tmInterval = null;
+    const RING_CIRC = 2 * Math.PI * 128;
+
+    function getCustomSeconds() {
+      const m = parseInt(document.getElementById('customMin').value, 10) || 0;
+      const s = parseInt(document.getElementById('customSec').value, 10) || 0;
+      return m * 60 + s;
+    }
+
+    function fmtTimer(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }
+
+    function updateTimerDisplay() {
+      document.getElementById('timerDisplay').textContent = fmtTimer(Math.max(0, Math.ceil(tmRemain)));
+      const progress = tmTotal > 0 ? (tmRemain / tmTotal) : 0;
+      document.getElementById('timerProgress').style.strokeDashoffset = `${RING_CIRC * (1 - progress)}`;
+      const mins = Math.floor(tmTotal / 60);
+      const secs = tmTotal % 60;
+      document.getElementById('timerLabel').textContent = secs ? `${mins} min ${secs} seg` : `${mins} minutos`;
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        if (tmRunning) return;
+        document.querySelectorAll('.preset-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const min = parseInt(b.dataset.min, 10);
+        tmTotal = min * 60;
+        tmRemain = tmTotal;
+        document.getElementById('customMin').value = min;
+        document.getElementById('customSec').value = 0;
+        updateTimerDisplay();
+      });
+    });
+
+    ['customMin', 'customSec'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        if (tmRunning) return;
+        const total = getCustomSeconds();
+        if (total <= 0) return;
+        tmTotal = total;
+        tmRemain = total;
+        document.querySelectorAll('.preset-btn').forEach(x => x.classList.remove('active'));
+        updateTimerDisplay();
+      });
+    });
+
+    document.getElementById('tmStart').addEventListener('click', () => {
+      if (tmRunning) {
+        // Pause
+        tmRunning = false;
+        clearInterval(tmInterval);
+        document.getElementById('tmStartLabel').textContent = 'Continuar';
+        document.getElementById('tmStart').classList.remove('warn');
+        document.getElementById('tmStart').classList.add('primary');
+        document.getElementById('tmStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+      } else {
+        if (tmRemain <= 0) {
+          tmRemain = tmTotal;
+        }
+        const endTime = Date.now() + tmRemain * 1000;
+        tmRunning = true;
+        document.getElementById('timerDisplay').classList.remove('done');
+        document.getElementById('tmStartLabel').textContent = 'Pausar';
+        document.getElementById('tmStart').classList.remove('primary');
+        document.getElementById('tmStart').classList.add('warn');
+        document.getElementById('tmStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        tmInterval = setInterval(() => {
+          tmRemain = Math.max(0, (endTime - Date.now()) / 1000);
+          updateTimerDisplay();
+          if (tmRemain <= 0) {
+            clearInterval(tmInterval);
+            tmRunning = false;
+            document.getElementById('timerDisplay').classList.add('done');
+            document.getElementById('tmStartLabel').textContent = 'Iniciar';
+            document.getElementById('tmStart').classList.remove('warn');
+            document.getElementById('tmStart').classList.add('primary');
+            document.getElementById('tmStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+            playBeep();
+            notify('⏰ Tempo esgotado!', 'Seu timer chegou ao fim.');
+            showToast('⏰ Tempo esgotado!');
+          }
+        }, 100);
+      }
+    });
+
+    document.getElementById('tmReset').addEventListener('click', () => {
+      tmRunning = false;
+      clearInterval(tmInterval);
+      tmRemain = tmTotal;
+      document.getElementById('timerDisplay').classList.remove('done');
+      document.getElementById('tmStartLabel').textContent = 'Iniciar';
+      document.getElementById('tmStart').classList.remove('warn');
+      document.getElementById('tmStart').classList.add('primary');
+      document.getElementById('tmStart').querySelector('svg').outerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+      updateTimerDisplay();
+    });
+
+    // Beep with Web Audio
+    function playBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const beep = (freq, start, dur) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.frequency.value = freq;
+          o.type = 'sine';
+          o.connect(g); g.connect(ctx.destination);
+          g.gain.setValueAtTime(0, ctx.currentTime + start);
+          g.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.02);
+          g.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
+          o.start(ctx.currentTime + start);
+          o.stop(ctx.currentTime + start + dur);
+        };
+        beep(880, 0, 0.2);
+        beep(880, 0.3, 0.2);
+        beep(1100, 0.6, 0.3);
+      } catch {}
+    }
+
+    // ============ NOTIFICATIONS ============
+    function updateNotifyIcon() {
+      const ico = document.getElementById('iconNotify');
+      if (Notification.permission === 'granted') {
+        ico.outerHTML = '<svg id="iconNotify" width="16" height="16" viewBox="0 0 24 24" fill="var(--accent-2)" stroke="var(--accent-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+      }
+    }
+    document.getElementById('btnNotify').addEventListener('click', async () => {
+      if (!('Notification' in window)) { showToast('Notificações não suportadas'); return; }
+      if (Notification.permission === 'granted') { showToast('Notificações já ativas'); return; }
+      const p = await Notification.requestPermission();
+      if (p === 'granted') { showToast('Notificações ativadas ✓'); updateNotifyIcon(); }
+      else showToast('Permissão negada');
+    });
+    function notify(title, body) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body });
+      }
+    }
+
+    // ============ INIT ============
+    updateHero();
+    renderWorldClocks();
+    updateTimerDisplay();
+    updateSW();
+    if ('Notification' in window) updateNotifyIcon();
+
+    setInterval(() => {
+      updateHero();
+      renderWorldClocks();
+    }, 1000);
+  </script>
 </body>
-
 </html>

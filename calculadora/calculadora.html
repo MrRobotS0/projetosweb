@@ -1,314 +1,1026 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calculadora</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora · Belinelo</title>
 
-    <!-- Ícones (como o ícone de exportar e os botões visuais) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-        crossorigin="anonymous" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
-    <!-- Fonte moderna e leve para a interface -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ============ TEMAS ============ */
+    :root[data-theme="dark"] {
+      --bg-1: #0a0a1a;
+      --bg-2: #050510;
+      --glow-1: rgba(124, 92, 255, 0.35);
+      --glow-2: rgba(0, 216, 255, 0.25);
+      --glow-3: rgba(255, 78, 205, 0.2);
+      --surface: rgba(255,255,255,0.04);
+      --surface-2: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #ffffff;
+      --text-dim: #94a3b8;
+      --text-dim-2: #64748b;
+      --accent: #7c5cff;
+      --accent-2: #00d8ff;
+      --accent-grad: linear-gradient(135deg, #7c5cff, #00d8ff);
+      --danger: #ff4c6a;
+      --danger-grad: linear-gradient(135deg, #ff4c6a, #ff7a8a);
+      --op: rgba(124,92,255,0.18);
+      --op-text: #c5b8ff;
+    }
+    :root[data-theme="light"] {
+      --bg-1: #f5f5fa;
+      --bg-2: #e8e8f0;
+      --glow-1: rgba(99,102,241,0.18);
+      --glow-2: rgba(14,165,233,0.14);
+      --glow-3: rgba(236,72,153,0.10);
+      --surface: rgba(255,255,255,0.7);
+      --surface-2: rgba(255,255,255,0.9);
+      --border: rgba(0,0,0,0.08);
+      --border-strong: rgba(0,0,0,0.15);
+      --text: #0f172a;
+      --text-dim: #475569;
+      --text-dim-2: #94a3b8;
+      --accent: #6366f1;
+      --accent-2: #0ea5e9;
+      --accent-grad: linear-gradient(135deg, #6366f1, #0ea5e9);
+      --danger: #e11d48;
+      --danger-grad: linear-gradient(135deg, #e11d48, #f43f5e);
+      --op: rgba(99,102,241,0.12);
+      --op-text: #4f46e5;
+    }
+    :root[data-theme="neon"] {
+      --bg-1: #02020a;
+      --bg-2: #000000;
+      --glow-1: rgba(57,255,20,0.25);
+      --glow-2: rgba(255,0,228,0.2);
+      --glow-3: rgba(0,255,255,0.18);
+      --surface: rgba(57,255,20,0.05);
+      --surface-2: rgba(57,255,20,0.1);
+      --border: rgba(57,255,20,0.2);
+      --border-strong: rgba(57,255,20,0.45);
+      --text: #39ff14;
+      --text-dim: #6dff4a;
+      --text-dim-2: #2fa30c;
+      --accent: #39ff14;
+      --accent-2: #ff00e4;
+      --accent-grad: linear-gradient(135deg, #39ff14, #ff00e4);
+      --danger: #ff0055;
+      --danger-grad: linear-gradient(135deg, #ff0055, #ff5577);
+      --op: rgba(255,0,228,0.15);
+      --op-text: #ff7aec;
+    }
+    :root[data-theme="sunset"] {
+      --bg-1: #2a0e1a;
+      --bg-2: #14050c;
+      --glow-1: rgba(255,107,53,0.3);
+      --glow-2: rgba(255,184,108,0.22);
+      --glow-3: rgba(229,57,113,0.25);
+      --surface: rgba(255,255,255,0.05);
+      --surface-2: rgba(255,255,255,0.1);
+      --border: rgba(255,184,108,0.18);
+      --border-strong: rgba(255,184,108,0.4);
+      --text: #fff5e6;
+      --text-dim: #ffd9a8;
+      --text-dim-2: #c98b5b;
+      --accent: #ff6b35;
+      --accent-2: #ffb86c;
+      --accent-grad: linear-gradient(135deg, #e53971, #ff6b35, #ffb86c);
+      --danger: #ff3366;
+      --danger-grad: linear-gradient(135deg, #ff3366, #ff6b35);
+      --op: rgba(255,107,53,0.18);
+      --op-text: #ffb86c;
+    }
 
-    <style>
-        /* === VARIÁVEIS DE TEMA (cores para cada modo visual) === */
-        :root {
-            --bg-color: #1e1e1e;
-            --text-color: #ffffff;
-            --button-color: rgba(255, 255, 255, 0.08);
-            --accent-color: #ff7b00;
-            --error-color: #ff4c4c;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Inter', system-ui, sans-serif; }
 
-        /* Tema claro */
-        [data-theme="light"] {
-            --bg-color: #f0f0f0;
-            --text-color: #111;
-            --button-color: rgba(0, 0, 0, 0.05);
-            --accent-color: #0077ff;
-            --error-color: #d00000;
-        }
+    body {
+      height: 100vh;
+      width: 100vw;
+      background:
+        radial-gradient(900px 500px at 20% 0%, var(--glow-1), transparent 60%),
+        radial-gradient(700px 500px at 100% 30%, var(--glow-2), transparent 60%),
+        radial-gradient(800px 600px at 50% 120%, var(--glow-3), transparent 60%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background 0.5s ease, color 0.3s ease;
+      overflow: hidden;
+    }
+    .stage {
+      flex: 1;
+      width: 100%;
+      max-width: 1080px;
+      display: grid;
+      grid-template-columns: minmax(0, 460px) minmax(280px, 380px);
+      gap: 20px;
+      align-items: stretch;
+      min-height: 0;
+    }
+    @media (max-width: 900px) {
+      .stage { grid-template-columns: minmax(0, 460px); justify-content: center; }
+      .history-panel { display: none; }
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        /* Tema neon */
-        [data-theme="neon"] {
-            --bg-color: #000;
-            --text-color: #39ff14;
-            --button-color: rgba(255, 255, 255, 0.05);
-            --accent-color: #39ff14;
-            --error-color: #ff0055;
-        }
+    /* ============ TOP BAR ============ */
+    .topbar {
+      width: 100%;
+      max-width: 1080px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all .25s ease;
+    }
+    .back-link:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      transform: translateX(-2px);
+    }
+    .topbar-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 38px; height: 38px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+      transform: translateY(-1px);
+    }
+    .theme-menu {
+      position: relative;
+    }
+    .theme-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      padding: 6px;
+      min-width: 160px;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition: all .2s ease;
+      z-index: 100;
+    }
+    .theme-popover.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .theme-option {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%;
+      padding: 8px 12px;
+      border: none; background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+    }
+    .theme-option:hover { background: var(--surface-2); }
+    .theme-option.active { background: var(--surface-2); }
+    .theme-swatch {
+      width: 14px; height: 14px; border-radius: 4px;
+      border: 1px solid var(--border-strong);
+    }
 
-        /* === RESET & CONFIG GERAL === */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s ease;
-        }
+    /* ============ CALCULADORA ============ */
+    .calculator {
+      width: 100%;
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow:
+        0 30px 80px -20px rgba(0,0,0,0.5),
+        0 10px 30px -10px var(--glow-1),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            min-height: 100vh;
-        }
+    /* Brand chip */
+    .brand {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    .brand-name span { color: var(--accent); }
+    .badge-mem {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: var(--op);
+      color: var(--op-text);
+      border: 1px solid var(--border);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+    .badge-mem.show { opacity: 1; }
 
-        /* === TOPO: tema e botão de exportar === */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 10px;
-        }
+    /* Display */
+    .display {
+      background: linear-gradient(160deg, rgba(0,0,0,0.25), rgba(0,0,0,0.1));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      flex: 1;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+    [data-theme="light"] .display {
+      background: linear-gradient(160deg, rgba(0,0,0,0.04), rgba(0,0,0,0.02));
+    }
+    .expression {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      color: var(--text-dim-2);
+      text-align: right;
+      min-height: 22px;
+      overflow-x: auto;
+      white-space: nowrap;
+      direction: rtl;
+    }
+    .expression::-webkit-scrollbar { height: 0; }
+    .result {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      text-align: right;
+      margin-top: 4px;
+      line-height: 1.1;
+      overflow-x: auto;
+      white-space: nowrap;
+      direction: rtl;
+      letter-spacing: -0.02em;
+    }
+    .result::-webkit-scrollbar { height: 0; }
+    .result.error {
+      color: var(--danger);
+      animation: shake 0.4s;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
 
-        /* Estilo do <select> de tema */
-        select,
-        button.export {
-            background-color: var(--button-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
-        }
+    /* Scientific toggle */
+    .sci-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all .25s ease;
+      font-size: 12px;
+      color: var(--text-dim);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .sci-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+    .sci-toggle .chev { transition: transform .3s ease; }
+    .sci-toggle.open .chev { transform: rotate(180deg); }
 
-        select option {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
+    .sci-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s ease, margin .35s ease;
+      flex-shrink: 0;
+    }
+    .sci-grid.open { max-height: 180px; margin-bottom: 10px; }
 
-        /* === CALCULADORA PRINCIPAL === */
-        .calculator {
-            background: var(--button-color);
-            border-radius: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        }
+    /* Buttons grid */
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      flex-shrink: 0;
+    }
 
-        /* Área onde a conta é exibida */
-        .display {
-            background: rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            font-size: 1.8rem;
-            text-align: right;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            overflow-x: auto;
-        }
+    button.key {
+      position: relative;
+      padding: 14px 0;
+      font-size: 1.05rem;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform .12s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      overflow: hidden;
+    }
+    button.key:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+    }
+    button.key:active {
+      transform: translateY(0) scale(0.97);
+    }
+    button.key.pressed {
+      animation: keypress .25s ease;
+    }
+    @keyframes keypress {
+      0% { transform: scale(1); }
+      40% { transform: scale(0.92); background: var(--surface-2); }
+      100% { transform: scale(1); }
+    }
 
-        /* Botões organizados em grade */
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-        }
+    /* Ripple */
+    button.key::after {
+      content: "";
+      position: absolute;
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+    }
+    button.key.ripple::after {
+      animation: ripple .55s ease-out;
+    }
+    @keyframes ripple {
+      0% { opacity: 0.35; transform: translate(-50%, -50%) scale(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(30); }
+    }
 
-        /* Estilo geral dos botões */
-        button {
-            padding: 15px;
-            font-size: 1rem;
-            background: var(--button-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.2s ease;
-            position: relative;
-        }
+    /* Operadores */
+    button.op {
+      background: var(--op);
+      color: var(--op-text);
+      font-weight: 600;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    button.op:hover { background: var(--surface-2); }
 
-        /* Animação ao passar o mouse */
-        button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
+    /* Igual */
+    button.eq {
+      background: var(--accent-grad);
+      color: white;
+      font-weight: 700;
+      font-size: 1.35rem;
+      border: none;
+      box-shadow: 0 10px 30px -8px var(--glow-1);
+    }
+    button.eq:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 14px 36px -8px var(--glow-1);
+    }
 
-        /* Botão "=" (calcular) destacado */
-        button.equal {
-            background: var(--accent-color);
-            color: white;
-            grid-column: span 2;
-        }
+    /* Clear */
+    button.clear {
+      background: var(--danger-grad);
+      color: white;
+      font-weight: 600;
+      border: none;
+    }
+    button.clear:hover { filter: brightness(1.1); }
 
-        /* Botão "C" (limpar) destacado em vermelho */
-        button.clear {
-            background: var(--error-color);
-            color: white;
-        }
+    /* Sci keys (menores) */
+    .sci-grid button.key {
+      padding: 9px 0;
+      font-size: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      color: var(--text-dim);
+      border-radius: 10px;
+    }
+    .sci-grid button.key:hover { color: var(--text); }
 
-        /* Tooltips personalizados nos botões */
-        button[data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--text-color);
-            color: var(--bg-color);
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            display: none;
-        }
+    /* Tooltip */
+    button[data-tip]:hover::before {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-1);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      white-space: nowrap;
+      z-index: 5;
+      pointer-events: none;
+      box-shadow: 0 8px 20px -4px rgba(0,0,0,0.4);
+    }
 
-        button[data-tooltip]:hover::after {
-            display: block;
-        }
+    /* ============ HISTÓRICO ============ */
+    .history-panel {
+      width: 100%;
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 18px 20px;
+      position: relative;
+      z-index: 1;
+      transition: all .3s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .history-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .history-title-count {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: var(--op);
+      color: var(--op-text);
+      font-weight: 600;
+    }
+    .history-actions { display: flex; gap: 6px; }
+    .history-actions button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 11px; font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: inherit;
+    }
+    .history-actions button:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface);
+    }
+    .history-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+    .history-list::-webkit-scrollbar { width: 6px; }
+    .history-list::-webkit-scrollbar-track { background: transparent; }
+    .history-list::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 9999px;
+    }
+    .history-empty {
+      text-align: center;
+      color: var(--text-dim-2);
+      font-size: 13px;
+      padding: 24px 0;
+      font-style: italic;
+    }
+    .history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    .history-item:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+      transform: translateX(2px);
+    }
+    .history-item .expr { color: var(--text-dim); }
+    .history-item .res {
+      color: var(--text);
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    .history-item .res::before { content: "= "; color: var(--accent); }
 
-        /* Histórico de operações abaixo da calculadora */
-        .history {
-            font-size: 0.9rem;
-            margin-top: 15px;
-            max-height: 100px;
-            overflow-y: auto;
-        }
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: all .3s ease;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Layout responsivo para celulares */
-        @media screen and (max-width: 500px) {
-            .buttons {
-                grid-template-columns: repeat(4, 1fr);
-            }
-
-            button.equal {
-                grid-column: span 4;
-            }
-        }
-    </style>
+    /* Mobile */
+    @media (max-width: 500px) {
+      body { padding: 10px; }
+      .topbar { margin-bottom: 10px; }
+      .calculator { padding: 14px; border-radius: 20px; }
+      .display { padding: 12px 14px; min-height: 70px; }
+      .result { font-size: clamp(1.6rem, 7vw, 2rem); }
+      button.key { padding: 12px 0; font-size: 0.95rem; border-radius: 12px; }
+      .buttons { gap: 6px; }
+      .sci-grid button.key { padding: 7px 0; font-size: 0.78rem; }
+    }
+    @media (max-height: 700px) {
+      .brand { margin-bottom: 6px; }
+      button.key { padding: 10px 0; }
+      .display { padding: 10px 14px; min-height: 60px; }
+      .sci-toggle { padding: 6px 10px; margin-bottom: 8px; }
+    }
+  </style>
 </head>
 
 <body data-theme="dark">
 
-    <!-- Seletor de tema + botão de exportar -->
-    <div class="top-bar">
-        <select onchange="changeTheme(this.value)">
-            <option value="dark">Tema Escuro</option>
-            <option value="light">Tema Claro</option>
-            <option value="neon">Tema Neon</option>
-        </select>
-        <button class="export" onclick="exportCSV()">📁 Exportar Histórico</button>
-    </div>
-
-    <!-- Calculadora em si -->
-    <div class="calculator">
-        <!-- Visor onde os números aparecem -->
-        <div class="display" id="display">0</div>
-
-        <!-- Todos os botões da calculadora -->
-        <div class="buttons">
-            <!-- Primeira linha -->
-            <button onclick="clearDisplay()" class="clear" data-tooltip="Limpar tudo">C</button>
-            <button onclick="append('(')" data-tooltip="Parêntese de abertura">(</button>
-            <button onclick="append(')')" data-tooltip="Parêntese de fechamento">)</button>
-            <button onclick="append('%')" data-tooltip="Resto (%)">%</button>
-            <button onclick="append('/')" data-tooltip="Divisão">÷</button>
-
-            <!-- Segunda linha -->
-            <button onclick="append('7')" data-tooltip="Número 7">7</button>
-            <button onclick="append('8')" data-tooltip="Número 8">8</button>
-            <button onclick="append('9')" data-tooltip="Número 9">9</button>
-            <button onclick="append('*')" data-tooltip="Multiplicação">×</button>
-            <button onclick="append('Math.sqrt(')" data-tooltip="Raiz quadrada">√</button>
-
-            <!-- Terceira linha -->
-            <button onclick="append('4')" data-tooltip="Número 4">4</button>
-            <button onclick="append('5')" data-tooltip="Número 5">5</button>
-            <button onclick="append('6')" data-tooltip="Número 6">6</button>
-            <button onclick="append('-')" data-tooltip="Subtração">−</button>
-            <button onclick="append('Math.pow(')" data-tooltip="Potência">^</button>
-
-            <!-- Quarta linha -->
-            <button onclick="append('1')" data-tooltip="Número 1">1</button>
-            <button onclick="append('2')" data-tooltip="Número 2">2</button>
-            <button onclick="append('3')" data-tooltip="Número 3">3</button>
-            <button onclick="append('+')" data-tooltip="Adição">+</button>
-            <button onclick="append('.')">.</button>
-
-            <!-- Última linha -->
-            <button onclick="append('0')" data-tooltip="Número 0">0</button>
-            <button onclick="append('Math.sin(')" data-tooltip="Seno (em radianos)">sin</button>
-            <button onclick="append('Math.cos(')" data-tooltip="Cosseno (em radianos)">cos</button>
-            <button onclick="append('Math.tan(')" data-tooltip="Tangente (em radianos)">tan</button>
-            <button onclick="append('Math.log10(')" data-tooltip="Logaritmo base 10">log</button>
-
-            <!-- Botão de calcular -->
-            <button onclick="calculate()" class="equal" data-tooltip="Calcular">=</button>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="../index.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Voltar
+    </a>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-export" data-tip="Exportar histórico (.csv)" aria-label="Exportar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-copy" data-tip="Copiar resultado" aria-label="Copiar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      </button>
+      <div class="theme-menu">
+        <button class="icon-btn" id="btn-theme" data-tip="Trocar tema" aria-label="Tema">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <div class="theme-popover" id="theme-popover">
+          <button class="theme-option" data-theme="dark"><span class="theme-swatch" style="background:linear-gradient(135deg,#7c5cff,#00d8ff)"></span>Escuro</button>
+          <button class="theme-option" data-theme="light"><span class="theme-swatch" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)"></span>Claro</button>
+          <button class="theme-option" data-theme="neon"><span class="theme-swatch" style="background:linear-gradient(135deg,#39ff14,#ff00e4)"></span>Neon</button>
+          <button class="theme-option" data-theme="sunset"><span class="theme-swatch" style="background:linear-gradient(135deg,#e53971,#ffb86c)"></span>Sunset</button>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Área que exibe o histórico de contas feitas -->
-        <div class="history" id="history"></div>
+  <!-- STAGE: calculadora + histórico -->
+  <div class="stage">
+
+  <!-- CALCULADORA -->
+  <div class="calculator">
+
+    <div class="brand">
+      <div class="brand-name">Calc<span>.</span></div>
+      <div id="mem-badge" class="badge-mem">M</div>
     </div>
 
-    <!-- ==== FUNCIONALIDADES DA CALCULADORA ==== -->
-    <script>
-        const display = document.getElementById('display');
-        const history = document.getElementById('history');
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
 
-        // Adiciona texto ao visor
-        function append(val) {
-            if (display.textContent === '0' || display.textContent === 'Erro') {
-                display.textContent = val;
-            } else {
-                display.textContent += val;
-            }
-        }
+    <!-- Toggle científico -->
+    <div class="sci-toggle" id="sci-toggle">
+      <span>🧮 Modo Científico</span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
 
-        // Limpa o visor
-        function clearDisplay() {
-            display.textContent = '0';
-        }
+    <div class="sci-grid" id="sci-grid">
+      <button class="key" data-action="fn" data-val="Math.sin(" data-tip="Seno (rad)">sin</button>
+      <button class="key" data-action="fn" data-val="Math.cos(" data-tip="Cosseno (rad)">cos</button>
+      <button class="key" data-action="fn" data-val="Math.tan(" data-tip="Tangente (rad)">tan</button>
+      <button class="key" data-action="fn" data-val="Math.log10(" data-tip="Log base 10">log</button>
+      <button class="key" data-action="fn" data-val="Math.log(" data-tip="Log natural">ln</button>
 
-        // Avalia a expressão digitada e mostra o resultado
-        function calculate() {
-            try {
-                const result = eval(display.textContent);
-                history.innerHTML += `<div>${display.textContent} = <strong>${result}</strong></div>`;
-                display.textContent = result;
-            } catch {
-                display.textContent = 'Erro';
-            }
-        }
+      <button class="key" data-action="fn" data-val="Math.sqrt(" data-tip="Raiz quadrada">√</button>
+      <button class="key" data-action="char" data-val="**2" data-tip="Ao quadrado">x²</button>
+      <button class="key" data-action="char" data-val="**" data-tip="Potência">x^y</button>
+      <button class="key" data-action="char" data-val="Math.PI" data-tip="Pi (π)">π</button>
+      <button class="key" data-action="char" data-val="Math.E" data-tip="Constante e">e</button>
+    </div>
 
-        // Troca o tema da calculadora e salva no localStorage
-        function changeTheme(themeName) {
-            document.body.setAttribute('data-theme', themeName);
-            localStorage.setItem('calc-theme', themeName);
-        }
+    <!-- Linha de memória + apagar -->
+    <div class="buttons" style="margin-bottom: 10px;">
+      <button class="key op" data-action="mem" data-val="MC" data-tip="Limpar memória">MC</button>
+      <button class="key op" data-action="mem" data-val="MR" data-tip="Recuperar memória">MR</button>
+      <button class="key op" data-action="mem" data-val="M+" data-tip="Somar à memória">M+</button>
+      <button class="key op" data-action="mem" data-val="M-" data-tip="Subtrair da memória">M−</button>
+    </div>
 
-        // Exporta o histórico como arquivo .csv
-        function exportCSV() {
-            let csv = 'Expressão,Resultado\n';
-            history.querySelectorAll('div').forEach(row => {
-                const [expr, res] = row.innerText.split('=');
-                csv += `"${expr.trim()}","${res.trim()}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'historico_calculadora.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+    <!-- Grid principal 4 colunas -->
+    <div class="buttons">
+      <button class="key clear" data-action="clear" data-tip="Limpar tudo">AC</button>
+      <button class="key op" data-action="back" data-tip="Apagar (Backspace)">⌫</button>
+      <button class="key op" data-action="char" data-val="%" data-tip="Porcentagem">%</button>
+      <button class="key op" data-action="char" data-val="/" data-tip="Divisão">÷</button>
 
-        // Aplica o tema salvo no carregamento da página
-        window.addEventListener('load', () => {
-            const savedTheme = localStorage.getItem('calc-theme');
-            if (savedTheme) {
-                changeTheme(savedTheme);
-                document.querySelector('select').value = savedTheme;
-            }
+      <button class="key" data-action="char" data-val="7">7</button>
+      <button class="key" data-action="char" data-val="8">8</button>
+      <button class="key" data-action="char" data-val="9">9</button>
+      <button class="key op" data-action="char" data-val="*" data-tip="Multiplicação">×</button>
+
+      <button class="key" data-action="char" data-val="4">4</button>
+      <button class="key" data-action="char" data-val="5">5</button>
+      <button class="key" data-action="char" data-val="6">6</button>
+      <button class="key op" data-action="char" data-val="-" data-tip="Subtração">−</button>
+
+      <button class="key" data-action="char" data-val="1">1</button>
+      <button class="key" data-action="char" data-val="2">2</button>
+      <button class="key" data-action="char" data-val="3">3</button>
+      <button class="key op" data-action="char" data-val="+" data-tip="Adição">+</button>
+
+      <button class="key" data-action="sign" data-tip="Inverter sinal">±</button>
+      <button class="key" data-action="char" data-val="0">0</button>
+      <button class="key" data-action="char" data-val="." data-tip="Vírgula decimal">.</button>
+      <button class="key eq" data-action="equals" data-tip="Calcular (Enter)">=</button>
+    </div>
+
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="history-panel">
+    <div class="history-header">
+      <div class="history-title">
+        📋 Histórico
+        <span class="history-title-count" id="hist-count">0</span>
+      </div>
+      <div class="history-actions">
+        <button id="btn-clear-hist">Limpar</button>
+      </div>
+    </div>
+    <div class="history-list" id="history-list">
+      <div class="history-empty">Nenhum cálculo ainda. Comece a digitar 👇</div>
+    </div>
+  </div>
+
+  </div> <!-- /stage -->
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ====== ESTADO ======
+    const exprEl = document.getElementById('expression');
+    const resultEl = document.getElementById('result');
+    const historyList = document.getElementById('history-list');
+    const histCount = document.getElementById('hist-count');
+    const memBadge = document.getElementById('mem-badge');
+    const toast = document.getElementById('toast');
+
+    let buffer = '';      // expressão sendo digitada (sintaxe JS)
+    let lastResult = '0';
+    let memory = parseFloat(localStorage.getItem('calc-memory')) || 0;
+    let history = JSON.parse(localStorage.getItem('calc-history') || '[]');
+
+    // ====== UTILS ======
+    const prettyOps = (s) => s
+      .replace(/\*/g, '×')
+      .replace(/\//g, '÷')
+      .replace(/-/g, '−')
+      .replace(/Math\.sqrt\(/g, '√(')
+      .replace(/Math\.sin\(/g, 'sin(')
+      .replace(/Math\.cos\(/g, 'cos(')
+      .replace(/Math\.tan\(/g, 'tan(')
+      .replace(/Math\.log10\(/g, 'log(')
+      .replace(/Math\.log\(/g, 'ln(')
+      .replace(/Math\.PI/g, 'π')
+      .replace(/Math\.E/g, 'e')
+      .replace(/\*\*/g, '^');
+
+    function formatNumber(n) {
+      if (n === Infinity || n === -Infinity) return '∞';
+      if (Number.isNaN(n)) return 'Erro';
+      const str = String(n);
+      if (str.length > 14 && Math.abs(n) > 1e-6) return n.toPrecision(10);
+      return str;
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    // ====== RENDER ======
+    function render() {
+      exprEl.textContent = prettyOps(buffer);
+      resultEl.classList.remove('error');
+      // Preview ao vivo
+      if (buffer && !/[+\-*/.(]$/.test(buffer)) {
+        try {
+          const v = Function('"use strict"; return (' + buffer + ')')();
+          if (typeof v === 'number' && isFinite(v)) {
+            resultEl.textContent = formatNumber(v);
+            return;
+          }
+        } catch {}
+      }
+      resultEl.textContent = buffer ? prettyOps(buffer) : (lastResult || '0');
+    }
+
+    function renderHistory() {
+      histCount.textContent = history.length;
+      if (history.length === 0) {
+        historyList.innerHTML = '<div class="history-empty">Nenhum cálculo ainda. Comece a digitar 👇</div>';
+        return;
+      }
+      historyList.innerHTML = history.slice().reverse().map((h, i) =>
+        `<div class="history-item" data-idx="${history.length - 1 - i}">
+          <span class="expr">${prettyOps(h.expr)}</span>
+          <span class="res">${h.res}</span>
+        </div>`).join('');
+      historyList.querySelectorAll('.history-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const h = history[parseInt(el.dataset.idx, 10)];
+          buffer = String(h.res);
+          render();
         });
-    </script>
-</body>
+      });
+    }
 
+    function updateMemBadge() {
+      memBadge.classList.toggle('show', memory !== 0);
+    }
+
+    // ====== AÇÕES ======
+    function pushChar(c) {
+      if (resultEl.classList.contains('error')) buffer = '';
+      buffer += c;
+      render();
+    }
+    function pushFn(c) {
+      if (resultEl.classList.contains('error')) buffer = '';
+      buffer += c;
+      render();
+    }
+    function clearAll() {
+      buffer = '';
+      lastResult = '0';
+      resultEl.classList.remove('error');
+      resultEl.textContent = '0';
+      exprEl.textContent = '';
+    }
+    function backspace() {
+      if (!buffer) return;
+      // Remove tokens conhecidos inteiros
+      const tokens = ['Math.sqrt(','Math.sin(','Math.cos(','Math.tan(','Math.log10(','Math.log(','Math.PI','Math.E','**2','**'];
+      for (const t of tokens) {
+        if (buffer.endsWith(t)) { buffer = buffer.slice(0, -t.length); render(); return; }
+      }
+      buffer = buffer.slice(0, -1);
+      render();
+    }
+    function toggleSign() {
+      // Inverte sinal do último número
+      const m = buffer.match(/(-?\d*\.?\d+)$/);
+      if (!m) return;
+      const start = buffer.length - m[0].length;
+      const num = m[0];
+      const newNum = num.startsWith('-') ? num.slice(1) : '-' + num;
+      buffer = buffer.slice(0, start) + newNum;
+      render();
+    }
+    function calculate() {
+      if (!buffer) return;
+      try {
+        const raw = Function('"use strict"; return (' + buffer + ')')();
+        if (typeof raw !== 'number' || !isFinite(raw)) throw new Error('overflow');
+        const res = formatNumber(raw);
+        history.push({ expr: buffer, res });
+        if (history.length > 50) history = history.slice(-50);
+        localStorage.setItem('calc-history', JSON.stringify(history));
+        renderHistory();
+        buffer = String(raw);
+        lastResult = res;
+        exprEl.textContent = prettyOps(history[history.length - 1].expr) + ' =';
+        resultEl.textContent = res;
+      } catch {
+        resultEl.classList.add('error');
+        resultEl.textContent = 'Erro';
+      }
+    }
+    function memOp(op) {
+      const current = parseFloat(resultEl.textContent) || 0;
+      switch (op) {
+        case 'MC': memory = 0; showToast('Memória limpa'); break;
+        case 'MR':
+          if (resultEl.classList.contains('error')) buffer = '';
+          buffer += String(memory);
+          render();
+          showToast(`M = ${memory}`);
+          break;
+        case 'M+': memory += current; showToast(`M+ ${current}  →  M = ${memory}`); break;
+        case 'M-': memory -= current; showToast(`M− ${current}  →  M = ${memory}`); break;
+      }
+      localStorage.setItem('calc-memory', memory);
+      updateMemBadge();
+    }
+
+    // ====== EVENT WIRING ======
+    document.querySelectorAll('button.key').forEach(btn => {
+      btn.addEventListener('click', () => {
+        animateKey(btn);
+        const a = btn.dataset.action;
+        if (a === 'char') pushChar(btn.dataset.val);
+        else if (a === 'fn') pushFn(btn.dataset.val);
+        else if (a === 'clear') clearAll();
+        else if (a === 'back') backspace();
+        else if (a === 'sign') toggleSign();
+        else if (a === 'equals') calculate();
+        else if (a === 'mem') memOp(btn.dataset.val);
+      });
+    });
+
+    function animateKey(btn) {
+      btn.classList.remove('ripple', 'pressed');
+      void btn.offsetWidth;
+      btn.classList.add('ripple', 'pressed');
+      setTimeout(() => btn.classList.remove('ripple', 'pressed'), 600);
+    }
+
+    // ====== TECLADO ======
+    const keyMap = {
+      '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+      '+':'+','-':'-','*':'*','/':'/','.':'.','(':'(',')':')','%':'%','^':'**'
+    };
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); flashKey('[data-action="equals"]'); calculate(); return; }
+      if (e.key === 'Backspace') { flashKey('[data-action="back"]'); backspace(); return; }
+      if (e.key === 'Escape') { flashKey('[data-action="clear"]'); clearAll(); return; }
+      if (keyMap[e.key] !== undefined) {
+        flashKey(`[data-val="${e.key === '^' ? '**' : e.key}"]`);
+        pushChar(keyMap[e.key]);
+      }
+    });
+    function flashKey(sel) {
+      const el = document.querySelector(sel);
+      if (el) animateKey(el);
+    }
+
+    // ====== TEMA ======
+    const themePopover = document.getElementById('theme-popover');
+    document.getElementById('btn-theme').addEventListener('click', (e) => {
+      e.stopPropagation();
+      themePopover.classList.toggle('open');
+    });
+    document.addEventListener('click', () => themePopover.classList.remove('open'));
+    themePopover.addEventListener('click', (e) => e.stopPropagation());
+
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const t = opt.dataset.theme;
+        document.documentElement.setAttribute('data-theme', t);
+        document.body.setAttribute('data-theme', t);
+        localStorage.setItem('calc-theme', t);
+        updateActiveTheme();
+        themePopover.classList.remove('open');
+      });
+    });
+    function updateActiveTheme() {
+      const t = document.documentElement.getAttribute('data-theme');
+      document.querySelectorAll('.theme-option').forEach(o =>
+        o.classList.toggle('active', o.dataset.theme === t));
+    }
+
+    // ====== SCIENTIFIC TOGGLE ======
+    const sciToggle = document.getElementById('sci-toggle');
+    const sciGrid = document.getElementById('sci-grid');
+    const sciOpen = localStorage.getItem('calc-sci') === '1';
+    if (sciOpen) { sciToggle.classList.add('open'); sciGrid.classList.add('open'); }
+    sciToggle.addEventListener('click', () => {
+      sciToggle.classList.toggle('open');
+      sciGrid.classList.toggle('open');
+      localStorage.setItem('calc-sci', sciGrid.classList.contains('open') ? '1' : '0');
+    });
+
+    // ====== HISTÓRICO ======
+    document.getElementById('btn-clear-hist').addEventListener('click', () => {
+      history = [];
+      localStorage.removeItem('calc-history');
+      renderHistory();
+      showToast('Histórico limpo');
+    });
+
+    // ====== EXPORT ======
+    document.getElementById('btn-export').addEventListener('click', () => {
+      if (!history.length) { showToast('Nada para exportar'); return; }
+      let csv = 'Expressão,Resultado\n';
+      history.forEach(h => csv += `"${h.expr}","${h.res}"\n`);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `historico_calculadora_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Histórico exportado ✓');
+    });
+
+    // ====== COPIAR ======
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(resultEl.textContent);
+        showToast('Resultado copiado ✓');
+      } catch {
+        showToast('Falha ao copiar');
+      }
+    });
+
+    // ====== INIT ======
+    (function init() {
+      const savedTheme = localStorage.getItem('calc-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.body.setAttribute('data-theme', savedTheme);
+      updateActiveTheme();
+      updateMemBadge();
+      renderHistory();
+      render();
+    })();
+  </script>
+</body>
 </html>

@@ -2,180 +2,559 @@
 <html lang="pt-BR" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
-  <title>Meus Projetos</title>
+  <title>Belinelo · Meus Projetos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portfólio de projetos web do Belinelo — calculadora, clima, mapa, galerias 3D, clones e mais." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
 
   <style>
-    body {
-      background-color: #000;
-      color: #fff;
-      transition: background-color 0.6s ease, color 0.6s ease;
+    :root {
+      --accent: #7c5cff;
+      --accent-2: #00d8ff;
+      --accent-3: #ff4ecd;
     }
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; }
+
+    html, body { background: #050510; color: #fff; }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,0.25), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(0,216,255,0.18), transparent 60%),
+        radial-gradient(900px 700px at 50% 120%, rgba(255,78,205,0.18), transparent 60%),
+        #050510;
+    }
+
     #vanta-bg {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: -1;
-      opacity: 1;
+      inset: 0;
+      z-index: -2;
+      opacity: 0.55;
     }
-    .card-glass {
-      backdrop-filter: blur(10px);
-      background-color: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: transform 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease;
+    .grid-overlay {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
     }
-    .card-glass:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      background-color: rgba(0, 0, 0, 0.6);
+
+    /* Hero gradient text */
+    .gradient-text {
+      background: linear-gradient(120deg, #fff 0%, #c5b8ff 30%, #7c5cff 55%, #00d8ff 80%, #fff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmer 8s ease-in-out infinite;
     }
-    .btn-placeholder { display: none; }
-    html {
-      scroll-behavior: smooth;
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
+
+    /* Glow ring around avatar / status */
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 9999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34,197,94,0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+      70%  { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+
+    /* Card */
+    .card {
+      position: relative;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(140deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04) 40%, rgba(124,92,255,0.25));
+      transition: transform .35s ease, box-shadow .35s ease;
+    }
+    .card .card-inner {
+      position: relative;
+      border-radius: 17px;
+      background: linear-gradient(160deg, rgba(15,15,30,0.85), rgba(8,8,20,0.85));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 1.5rem;
+      height: 100%;
+      overflow: hidden;
+    }
+    .card .card-inner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(400px circle at var(--mx,50%) var(--my,0%), rgba(124,92,255,0.25), transparent 40%);
+      opacity: 0;
+      transition: opacity .35s ease;
+      pointer-events: none;
+    }
+    .card:hover .card-inner::before { opacity: 1; }
+    .card:hover {
+      box-shadow: 0 30px 60px -20px rgba(124,92,255,0.35), 0 10px 25px -10px rgba(0,216,255,0.2);
+    }
+
+    .icon-tile {
+      width: 56px; height: 56px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(0,216,255,0.25));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 24px -8px rgba(124,92,255,0.4);
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: #cbd5e1;
+    }
+    .badge.api    { background: rgba(0,216,255,0.12); border-color: rgba(0,216,255,0.35); color: #7be8ff; }
+    .badge.react  { background: rgba(97,218,251,0.12); border-color: rgba(97,218,251,0.35); color: #9ee5fb; }
+    .badge.ts     { background: rgba(56,121,225,0.18); border-color: rgba(56,121,225,0.5); color: #a8c3ff; }
+    .badge.three  { background: rgba(255,78,205,0.12); border-color: rgba(255,78,205,0.35); color: #ff9ee0; }
+    .badge.js     { background: rgba(247,223,30,0.12); border-color: rgba(247,223,30,0.35); color: #f7e35e; }
+    .badge.css    { background: rgba(124,92,255,0.15); border-color: rgba(124,92,255,0.4); color: #c5b8ff; }
+    .badge.external { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.35); color: #86efac; }
+
+    .arrow {
+      transition: transform .35s ease, opacity .35s ease;
+      opacity: 0.5;
+    }
+    .card:hover .arrow { transform: translate(4px, -4px); opacity: 1; }
+
+    /* Filter chips */
+    .chip {
+      padding: 8px 16px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      font-size: 13px; font-weight: 500;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all .25s ease;
+      white-space: nowrap;
+    }
+    .chip:hover { color: #fff; border-color: rgba(124,92,255,0.5); }
+    .chip.active {
+      background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(0,216,255,0.25));
+      color: #fff;
+      border-color: rgba(124,92,255,0.6);
+      box-shadow: 0 8px 24px -8px rgba(124,92,255,0.5);
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 12px 16px 12px 44px;
+      color: #fff;
+      font-size: 14px;
+      transition: all .25s ease;
+    }
+    .search-wrap input:focus {
+      outline: none;
+      border-color: rgba(124,92,255,0.6);
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 0 0 4px rgba(124,92,255,0.15);
+    }
+    .search-wrap input::placeholder { color: #64748b; }
+    .search-wrap svg {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: #64748b;
+    }
+
+    .scroll-hidden { display: none !important; }
+
+    .stat {
+      display: flex; flex-direction: column;
+      padding: 14px 20px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-width: 110px;
+    }
+    .stat .num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem; font-weight: 700;
+      background: linear-gradient(135deg, #fff, #7c5cff);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; }
+
+    footer a:hover { color: #c5b8ff; }
+
+    /* Subtle scrollbar */
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: #050510; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #7c5cff, #00d8ff); border-radius: 9999px; }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center px-6 py-10">
+<body class="min-h-screen">
   <div id="vanta-bg"></div>
+  <div class="grid-overlay"></div>
 
-  <div class="w-full max-w-6xl">
+  <div class="max-w-7xl mx-auto px-6 sm:px-10 py-12">
 
-    <header class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
-      <h1 class="text-4xl sm:text-5xl font-extrabold animate__animated animate__fadeInDown">
-        💼 Meus Projetos
+    <!-- NAV -->
+    <nav class="flex items-center justify-between mb-16" data-aos="fade-down">
+      <a href="#" class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-lg"
+              style="background: linear-gradient(135deg, #7c5cff, #00d8ff); box-shadow: 0 8px 24px -6px rgba(124,92,255,0.5);">B</span>
+        <span class="font-display font-bold tracking-tight">Belinelo<span class="text-violet-400">.dev</span></span>
+      </a>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:flex items-center gap-2 text-sm text-slate-300">
+          <span class="status-dot"></span> Disponível para projetos
+        </span>
+        <a href="https://mrrobots0.github.io/Portfolio/" target="_blank"
+           class="text-sm px-4 py-2 rounded-lg border border-white/10 hover:border-violet-400/60 hover:bg-white/5 transition">
+          Portfólio ↗
+        </a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="mb-14" data-aos="fade-up">
+      <span class="badge mb-6">✨ Coleção de projetos web</span>
+      <h1 class="font-display text-5xl sm:text-7xl lg:text-8xl font-bold leading-[0.95] mb-6">
+        <span class="gradient-text">Construindo</span><br/>
+        coisas <span class="italic font-light text-slate-300">na</span> web.
       </h1>
+      <p class="text-lg sm:text-xl text-slate-400 max-w-2xl leading-relaxed mb-8">
+        Uma coleção dos meus experimentos — de clones a simuladores 3D, passando por APIs,
+        dashboards e ferramentas do dia a dia. Tudo construído com curiosidade e café. ☕
+      </p>
+
+      <div class="flex flex-wrap gap-3 mb-10">
+        <div class="stat">
+          <span class="num" id="stat-count">11</span>
+          <span class="label">Projetos</span>
+        </div>
+        <div class="stat">
+          <span class="num">6+</span>
+          <span class="label">Tecnologias</span>
+        </div>
+        <div class="stat">
+          <span class="num">∞</span>
+          <span class="label">Café</span>
+        </div>
+      </div>
     </header>
 
-    <section id="projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate__animated animate__fadeInUp">
-      <a href="calculadora/calculadora.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">📐 Calculadora</h2>
-        <p class="text-sm">Calculadora básica/científica.</p>
+    <!-- FILTROS + BUSCA -->
+    <div class="flex flex-col lg:flex-row gap-4 mb-10" data-aos="fade-up" data-aos-delay="100">
+      <div class="search-wrap flex-1 lg:max-w-md">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input id="search" type="text" placeholder="Buscar projeto..." />
+      </div>
+      <div class="flex flex-wrap gap-2 lg:flex-1 lg:justify-end">
+        <button class="chip active" data-filter="all">Todos</button>
+        <button class="chip" data-filter="api">APIs</button>
+        <button class="chip" data-filter="3d">3D / Visual</button>
+        <button class="chip" data-filter="tool">Ferramentas</button>
+        <button class="chip" data-filter="clone">Clones</button>
+      </div>
+    </div>
+
+    <!-- PROJETOS -->
+    <section id="projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <a href="calculadora/calculadora.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="tool" data-name="calculadora científica básica matemática">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">📐</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Calculadora</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Calculadora básica e científica com operações avançadas.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge js">JS</span><span class="badge css">CSS</span></div>
+        </div>
       </a>
-      <a href="clima/clima.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🌡️ Painel de Clima</h2>
-        <p class="text-sm">Painel que exibe o clima da cidade.</p>
+
+      <a href="clima/clima.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="api tool" data-name="clima tempo painel cidade weather">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🌡️</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Painel de Clima</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Consulta clima em tempo real por cidade via API.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge api">API</span><span class="badge js">JS</span></div>
+        </div>
       </a>
-      <a href="relogio/relogio.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🕓 Relógio Mundial</h2>
-        <p class="text-sm">Relógio, Timer e Cronômetro.</p>
+
+      <a href="relogio/relogio.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="tool" data-name="relógio timer cronômetro mundial horário">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🕓</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Relógio Mundial</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Relógio com fusos, timer e cronômetro integrados.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge js">JS</span><span class="badge css">CSS</span></div>
+        </div>
       </a>
-      <a href="mapa/mapa.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🌍 Clone Google Maps</h2>
-        <p class="text-sm">Mapa Mundi que exibe temperatura.</p>
+
+      <a href="mapa/mapa.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="api clone 3d" data-name="mapa google maps temperatura mundo">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🌍</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Clone Google Maps</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Mapa-múndi interativo que exibe temperatura por região.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge api">API</span><span class="badge clone">Clone</span></div>
+        </div>
       </a>
-      <a href="siga/login.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🎓 Clone do Siga Fatec</h2>
-        <p class="text-sm">Clone do Siga estilizado com frameworks e bibliotecas.</p>
+
+      <a href="siga/login.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="clone" data-name="siga fatec faculdade login clone">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🎓</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Clone do Siga Fatec</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Réplica estilizada do portal acadêmico com login.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge clone">Clone</span><span class="badge css">CSS</span></div>
+        </div>
       </a>
-      <a href="galeria/universo.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🪐 Galeria do Universo</h2>
-        <p class="text-sm">Galeria com imagens do universo.</p>
+
+      <a href="galeria/universo.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="3d" data-name="galeria universo planetas espaço astronomia">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🪐</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Galeria do Universo</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Galeria imersiva com imagens e curiosidades cósmicas.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge css">CSS</span><span class="badge js">JS</span></div>
+        </div>
       </a>
-      <a href="https://mrrobots0.github.io/Portfolio/"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🎩 Meu Portfólio</h2>
-        <p class="text-sm">Portfólio pessoal do Belinelo.</p>
+
+      <a href="https://mrrobots0.github.io/Portfolio/" target="_blank" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="tool" data-name="portfólio belinelo pessoal sobre">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🎩</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Meu Portfólio</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Portfólio pessoal completo com projetos e experiências.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge external">↗ Externo</span></div>
+        </div>
       </a>
-      <a href="calendario/calendario.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">📅 Calendário</h2>
-        <p class="text-sm">Calendário pessoal.</p>
+
+      <a href="calendario/calendario.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="tool" data-name="calendário agenda pessoal data evento">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">📅</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Calendário</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Calendário interativo com navegação por meses.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge js">JS</span><span class="badge css">CSS</span></div>
+        </div>
       </a>
-      <a href="filmes/index.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🎞 Clone da Netflix</h2>
-        <p class="text-sm">Catálogo de busca de filmes usando API do TMDB.</p>
+
+      <a href="filmes/index.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="api clone" data-name="filmes netflix tmdb catálogo streaming">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🎞️</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Clone da Netflix</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Catálogo de filmes consumindo API do TMDB.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge api">TMDB</span><span class="badge clone">Clone</span></div>
+        </div>
       </a>
-      <a href="financeiro/index.html"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">💸 Gestão Financeira Pessoal</h2>
-        <p class="text-sm">Página com sistema de gestão financeira pessoal.</p>
+
+      <a href="financeiro/index.html" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="tool" data-name="financeiro gestão dinheiro despesas finanças">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">💸</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Gestão Financeira</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Controle pessoal de receitas, despesas e metas.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge js">JS</span><span class="badge css">CSS</span></div>
+        </div>
       </a>
-      <a href="https://mrrobots0.github.io/sistemasolar/"
-         class="card-glass rounded-xl p-8 text-center hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
-         data-tilt data-tilt-max="10" data-tilt-speed="400">
-        <h2 class="text-2xl font-semibold mb-2">🌌 Suko Stellar</h2>
-        <p class="text-sm">Simulador do sistema solar 3d interativo com React e TypeScript.</p>
+
+      <a href="https://mrrobots0.github.io/sistemasolar/" target="_blank" class="card group" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15"
+         data-category="3d" data-name="sistema solar 3d react typescript planetas stellar">
+        <div class="card-inner flex flex-col gap-4 min-h-[220px]">
+          <div class="flex items-start justify-between">
+            <div class="icon-tile">🌌</div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display text-xl font-bold mb-1.5">Suko Stellar</h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Simulador 3D interativo do sistema solar.</p>
+          </div>
+          <div class="flex gap-1.5 mt-auto"><span class="badge three">Three.js</span><span class="badge react">React</span><span class="badge ts">TS</span></div>
+        </div>
       </a>
+
     </section>
 
-    <footer class="mt-16 text-gray-400 text-sm text-center">
-      © 2025 - Desenvolvido por Belinelo
+    <p id="no-results" class="hidden text-center text-slate-400 py-12">
+      Nenhum projeto encontrado. Tente outro termo. 🔍
+    </p>
+
+    <!-- FOOTER -->
+    <footer class="mt-24 pt-10 border-t border-white/5">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-sm text-slate-500">
+          © 2026 — Desenvolvido com <span class="text-rose-400">♥</span> por <span class="text-slate-300 font-semibold">Belinelo</span>
+        </p>
+        <div class="flex items-center gap-5 text-sm text-slate-400">
+          <a href="https://github.com/mrrobots0" target="_blank" class="transition">GitHub</a>
+          <a href="https://mrrobots0.github.io/Portfolio/" target="_blank" class="transition">Portfólio</a>
+          <a href="#" class="transition">Topo ↑</a>
+        </div>
+      </div>
     </footer>
+
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: true
-    });
+    AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true });
 
+    // Tilt cards
     document.addEventListener('DOMContentLoaded', () => {
       const cards = document.querySelectorAll('[data-tilt]');
-      VanillaTilt.init(cards, {
-        max: 10,
-        speed: 400,
-        glare: true,
-        "max-glare": 0.2,
+      VanillaTilt.init(cards, { max: 6, speed: 400, glare: true, "max-glare": 0.15 });
+
+      // Mouse-tracking spotlight on each card
+      cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+          card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+        });
       });
+
+      // Project count
+      document.getElementById('stat-count').textContent = document.querySelectorAll('#projects > a').length;
     });
 
-    let vantaEffect = null;
-    function initVantaClouds() {
-      if (vantaEffect) {
-        vantaEffect.destroy();
-        vantaEffect = null;
-      }
-      if (window.innerWidth >= 768 && window.VANTA && VANTA.CLOUDS) {
-        vantaEffect = VANTA.CLOUDS({
-          el: "#vanta-bg",
-          mouseControls: false,
-          touchControls: false,
-          gyroControls: false,
-          skyColor: 0x000000,
-          cloudColor: 0x222222,
-          sunColor: 0x00d8ff,
-          sunGlareColor: 0x555555,
-          fogColor: 0x000000,
-          zoom: 0.8
-        });
-        document.getElementById('vanta-bg').style.opacity = '1';
-      } else {
-        document.getElementById('vanta-bg').style.opacity = '0';
-      }
+    // Filtros + busca
+    const cards = () => document.querySelectorAll('#projects > a');
+    const noResults = document.getElementById('no-results');
+    let activeFilter = 'all';
+
+    function applyFilters() {
+      const term = document.getElementById('search').value.trim().toLowerCase();
+      let visible = 0;
+      cards().forEach(c => {
+        const cats = (c.dataset.category || '').split(/\s+/);
+        const name = (c.dataset.name || '').toLowerCase() + ' ' + c.textContent.toLowerCase();
+        const matchCat = activeFilter === 'all' || cats.includes(activeFilter);
+        const matchTerm = !term || name.includes(term);
+        if (matchCat && matchTerm) { c.classList.remove('scroll-hidden'); visible++; }
+        else c.classList.add('scroll-hidden');
+      });
+      noResults.classList.toggle('hidden', visible !== 0);
     }
 
-    window.addEventListener('load', () => {
-      initVantaClouds();
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeFilter = chip.dataset.filter;
+        applyFilters();
+      });
     });
+    document.getElementById('search').addEventListener('input', applyFilters);
+
+    // Vanta NET background
+    let vantaEffect = null;
+    function initVanta() {
+      if (vantaEffect) { vantaEffect.destroy(); vantaEffect = null; }
+      if (window.innerWidth >= 768 && window.VANTA && VANTA.NET) {
+        vantaEffect = VANTA.NET({
+          el: "#vanta-bg",
+          mouseControls: true,
+          touchControls: false,
+          gyroControls: false,
+          minHeight: 200.00,
+          minWidth: 200.00,
+          scale: 1.00,
+          scaleMobile: 1.00,
+          color: 0x7c5cff,
+          backgroundColor: 0x050510,
+          points: 10.00,
+          maxDistance: 22.00,
+          spacing: 18.00
+        });
+      }
+    }
+    window.addEventListener('load', initVanta);
+    let resizeTimer;
     window.addEventListener('resize', () => {
-      initVantaClouds();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(initVanta, 200);
     });
   </script>
 </body>

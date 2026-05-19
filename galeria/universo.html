@@ -1,233 +1,1055 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="scroll-smooth">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Galeria do Universo</title>
+  <title>Galeria do Universo · Belinelo</title>
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Bootstrap (para modal) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- AOS (Animate On Scroll) -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet"/>
-  <!-- Font & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <!-- Particles.js for starfield background -->
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-  <!-- Vanilla-Tilt for subtle tilt on hover -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Fonte e tema escuro */
+    :root {
+      --bg-1: #050510;
+      --bg-2: #000005;
+      --glow-1: rgba(124, 92, 255, 0.30);
+      --glow-2: rgba(0, 216, 255, 0.22);
+      --glow-3: rgba(255, 78, 205, 0.18);
+      --surface: rgba(255,255,255,0.05);
+      --surface-2: rgba(255,255,255,0.10);
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #ffffff;
+      --text-dim: #cbd5e1;
+      --text-dim-2: #94a3b8;
+      --accent: #7c5cff;
+      --accent-2: #00d8ff;
+      --accent-grad: linear-gradient(135deg, #7c5cff, #00d8ff);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Inter', system-ui, sans-serif; }
     body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Orbitron', sans-serif;
-      background: radial-gradient(ellipse at bottom, #0d0d1a 0%, #000 100%);
-      color: #fff;
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 700px at 15% 0%, var(--glow-1), transparent 60%),
+        radial-gradient(900px 600px at 100% 20%, var(--glow-2), transparent 60%),
+        radial-gradient(1000px 700px at 50% 120%, var(--glow-3), transparent 60%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
       overflow-x: hidden;
     }
-    /* Container de partículas */
-    #particles-js {
+
+    /* ============ STARFIELD CANVAS ============ */
+    #stars {
       position: fixed;
-      width: 100%;
-      height: 100%;
-      top: 0; left: 0;
-      z-index: -1;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
     }
-    header {
-      padding: 2rem 1rem;
-      text-align: center;
-      background-color: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(5px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
-    }
-    header h1 {
-      color: #00d8ff;
-      font-size: 2.5rem;
-    }
-    main {
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 4% 60px;
       position: relative;
       z-index: 1;
-      padding-top: 2rem;
-      padding-bottom: 4rem;
     }
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
+
+    /* ============ TOP BAR ============ */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
     }
-    .gallery-item {
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all .25s ease;
+    }
+    .back-link:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      transform: translateX(-2px);
+    }
+    .nasa-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 9999px;
+      background: rgba(0,216,255,0.12);
+      border: 1px solid rgba(0,216,255,0.35);
+      color: #7be8ff;
+    }
+    .nasa-badge .pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #00d8ff;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,216,255,0.6); }
+      50% { box-shadow: 0 0 0 6px rgba(0,216,255,0); }
+    }
+
+    /* ============ HERO ============ */
+    .hero {
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-dim-2);
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      font-weight: 700;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+    .hero-title .grad {
+      background: linear-gradient(120deg, #fff 0%, #c5b8ff 30%, #7c5cff 55%, #00d8ff 80%, #fff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmer 8s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      max-width: 640px;
+    }
+
+    /* ============ CONTROLS ============ */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-wrap {
       position: relative;
-      overflow: hidden;
+      flex: 1;
+      min-width: 240px;
+      max-width: 380px;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 11px 14px 11px 42px;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--surface-2);
+      box-shadow: 0 0 0 4px var(--glow-1);
+    }
+    .search-wrap input::placeholder { color: var(--text-dim-2); }
+    .search-wrap svg {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-dim-2);
+    }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      padding: 9px 16px;
+      border-radius: 9999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
-      background: #111;
+      transition: all .2s ease;
+      font-family: inherit;
     }
-    .gallery-item:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 30px rgba(0, 216, 255, 0.6);
+    .chip:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface-2);
     }
-    .gallery-item img {
-      display: block;
-      width: 100%;
-      height: auto;
+    .chip.active {
+      background: var(--accent-grad);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 6px 20px -6px var(--glow-1);
+    }
+
+    /* ============ APOD TODAY HERO CARD ============ */
+    .today-card {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 0;
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      transition: all .35s ease;
+    }
+    .today-card:hover { border-color: var(--border-strong); }
+    @media (max-width: 900px) {
+      .today-card { grid-template-columns: 1fr; }
+    }
+    .today-img-wrap {
+      position: relative;
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+    .today-img-wrap img {
+      width: 100%; height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
+      transition: transform .8s ease;
     }
-    .gallery-item:hover img {
-      transform: scale(1.05);
+    .today-img-wrap:hover img { transform: scale(1.04); }
+    .today-img-wrap iframe {
+      width: 100%; height: 100%;
+      border: none;
     }
-    .overlay {
+    .today-tag {
       position: absolute;
-      bottom: 0;
-      left: 0;
+      top: 14px; left: 14px;
+      padding: 5px 12px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-strong);
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #fbbf24;
+    }
+    .today-body {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+    .today-date {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim-2);
+      font-weight: 600;
+    }
+    .today-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .today-text {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .today-meta {
+      display: flex; gap: 14px; align-items: center;
+      font-size: 12px;
+      color: var(--text-dim-2);
+      margin-top: 4px;
+    }
+    .today-btn {
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px;
+      background: var(--accent-grad);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 8px 24px -8px var(--glow-1);
+      transition: all .2s ease;
+      margin-top: 8px;
+    }
+    .today-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* ============ GALLERY ============ */
+    .gallery-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .gallery-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .gallery-header .count {
+      font-size: 12px;
+      color: var(--text-dim-2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .gallery {
+      column-count: 4;
+      column-gap: 14px;
+    }
+    @media (max-width: 1100px) { .gallery { column-count: 3; } }
+    @media (max-width: 760px)  { .gallery { column-count: 2; } }
+    @media (max-width: 500px)  { .gallery { column-count: 1; } }
+
+    .item {
+      position: relative;
+      break-inside: avoid;
+      margin-bottom: 14px;
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: zoom-in;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all .35s ease;
+    }
+    .item:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-strong);
+      box-shadow: 0 20px 50px -10px rgba(124,92,255,0.3);
+    }
+    .item img {
       width: 100%;
-      padding: 0.75rem;
-      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-      color: #fff;
-      font-size: 1rem;
-      text-align: center;
-    }
-    /* Modal full-screen image */
-    .modal-img {
-      max-width: 100%;
       height: auto;
-      border-radius: 8px;
+      display: block;
+      transition: transform .5s ease;
     }
+    .item:hover img { transform: scale(1.04); }
+    .item-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%);
+      opacity: 0;
+      transition: opacity .25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 16px;
+    }
+    .item:hover .item-overlay { opacity: 1; }
+    .item-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .item-date {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    .item-video-badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border-strong);
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+    }
+
+    /* Skeleton */
+    .skeleton {
+      break-inside: avoid;
+      margin-bottom: 14px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shim 1.4s infinite;
+    }
+    @keyframes shim {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .load-more-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .btn-load {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 28px;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    .btn-load:hover {
+      background: var(--surface-2);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .btn-load:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .spin {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============ LIGHTBOX ============ */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .lightbox.open { opacity: 1; pointer-events: auto; }
+    .lightbox-inner {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      width: 100%;
+      max-width: 1400px;
+      max-height: 92vh;
+    }
+    @media (max-width: 900px) {
+      .lightbox-inner { grid-template-columns: 1fr; max-height: 95vh; overflow-y: auto; }
+    }
+    .lightbox-media {
+      position: relative;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+    .lightbox-media img {
+      max-width: 100%;
+      max-height: 92vh;
+      object-fit: contain;
+      display: block;
+    }
+    .lightbox-media iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: none;
+    }
+    .lightbox-info {
+      background: linear-gradient(160deg, var(--surface-2), var(--surface));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .lightbox-info::-webkit-scrollbar { width: 6px; }
+    .lightbox-info::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+
+    .lb-date {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7be8ff;
+      font-weight: 700;
+    }
+    .lb-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .lb-explanation {
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+    .lb-copyright {
+      font-size: 11px;
+      color: var(--text-dim-2);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .lb-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .lb-btn {
+      flex: 1;
+      min-width: 0;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      text-decoration: none;
+      transition: all .2s ease;
+    }
+    .lb-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+    }
+    .lb-btn.primary {
+      background: var(--accent-grad);
+      border: none;
+      color: white;
+      box-shadow: 0 8px 24px -8px var(--glow-1);
+    }
+    .lb-btn.primary:hover { filter: brightness(1.1); }
+
+    .lb-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-strong);
+      color: white;
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      z-index: 5;
+      transition: all .2s ease;
+    }
+    .lb-nav:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .lb-nav.prev { left: 16px; }
+    .lb-nav.next { right: 16px; }
+
+    .lb-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-strong);
+      color: white;
+      cursor: pointer;
+      font-size: 1.4rem;
+      display: inline-flex; align-items: center; justify-content: center;
+      z-index: 10;
+      transition: all .2s ease;
+    }
+    .lb-close:hover { background: var(--accent); border-color: var(--accent); }
+
+    .lb-counter {
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 500;
+      z-index: 5;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 11px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all .3s ease;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-dim-2);
+    }
+    .empty-state .ico {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
     footer {
       text-align: center;
-      padding: 1rem;
-      color: #aaa;
-      background-color: rgba(0,0,0,0.6);
-      position: relative;
-      z-index: 1;
+      padding: 40px 20px 20px;
+      color: var(--text-dim-2);
+      font-size: 12px;
     }
-    /* Scrollbar custom */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #000;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #00d8ff;
-      border-radius: 4px;
-    }
+    footer a { color: var(--accent-2); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <!-- Particles.js container -->
-  <div id="particles-js"></div>
 
-  <header data-aos="fade-down">
-    <h1><i class="fas fa-rocket"></i> Galeria do Universo</h1>
-  </header>
+  <canvas id="stars"></canvas>
 
-  <main class="container mx-auto">
-    <p class="text-center text-gray-300 mb-8" data-aos="fade-up">
-      Explore imagens incríveis do cosmos. Clique em cada item para ampliar.
-    </p>
-    <div class="gallery-grid">
-      <!-- Exemplo de item: adicionar mais conforme necessário -->
-      <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#modalImage" data-img-src="https://cdn.pixabay.com/photo/2024/12/07/13/08/space-9250868_960_720.jpg" data-img-title="Galáxia Espiral" data-aos="zoom-in">
-        <img src="https://cdn.pixabay.com/photo/2024/12/07/13/08/space-9250868_960_720.jpg" alt="Galáxia Espiral" loading="lazy" />
-        <div class="overlay">Galáxia Espiral</div>
+  <div class="wrap">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <a href="../index.html" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Voltar
+        </a>
       </div>
-      <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#modalImage" data-img-src="https://cdn.pixabay.com/photo/2020/03/30/13/29/space-4984262_1280.jpg" data-img-title="Universo Infinito" data-aos="zoom-in" data-aos-delay="100">
-        <img src="https://cdn.pixabay.com/photo/2020/03/30/13/29/space-4984262_1280.jpg" alt="Universo Infinito" loading="lazy" />
-        <div class="overlay">Universo Infinito</div>
+      <div class="nasa-badge">
+        <span class="pulse"></span>
+        Imagens da NASA APOD
       </div>
-      <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#modalImage" data-img-src="https://tm.ibxk.com.br/2023/09/06/06092553252091.jpg?ims=fit-in/800x500" data-img-title="Buraco Negro" data-aos="zoom-in" data-aos-delay="200">
-        <img src="https://tm.ibxk.com.br/2023/09/06/06092553252091.jpg?ims=fit-in/800x500" alt="Buraco Negro" loading="lazy" />
-        <div class="overlay">Buraco Negro</div>
-      </div>
-      <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#modalImage" data-img-src="https://admin.cnnbrasil.com.br/wp-content/uploads/sites/12/2023/08/cnn-L19jb21wb25lbnRzL2ltYWdlL2luc3RhbmNlcy9jbGx3cDdtcHkwMDBubzdvemMyaWgydjRu-L19wYWdlcy9jbGx3cDdtcDIwMDAwbzdvemFvYzJoM3Iy.JPG.jpg" data-img-title="Nebulosa" data-aos="zoom-in" data-aos-delay="300">
-        <img src="https://admin.cnnbrasil.com.br/wp-content/uploads/sites/12/2023/08/cnn-L19jb21wb25lbnRzL2ltYWdlL2luc3RhbmNlcy9jbGx3cDdtcHkwMDBubzdvemMyaWgydjRu-L19wYWdlcy9jbGx3cDdtcDIwMDAwbzdvemFvYzJoM3Iy.JPG.jpg" alt="Nebulosa" loading="lazy" />
-        <div class="overlay">Nebulosa</div>
-      </div>
-      <!-- Pode adicionar mais seções seguindo o mesmo padrão -->
     </div>
-  </main>
 
-  <!-- Modal para mostrar imagem ampliada -->
-  <div class="modal fade" id="modalImage" tabindex="-1" aria-labelledby="modalImageLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content bg-transparent border-0">
-        <div class="modal-body p-0">
-          <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          <img id="modal-img" src="" alt="" class="modal-img mx-auto d-block" />
-          <p id="modal-title" class="text-center text-white mt-2"></p>
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-eyebrow">★ Astronomy Picture of the Day</div>
+      <h1 class="hero-title">Galeria do <span class="grad">Universo</span></h1>
+      <p class="hero-desc">
+        Explore o cosmos através das lentes da NASA. Cada imagem é uma janela para galáxias distantes,
+        nebulosas coloridas e fenômenos cósmicos que desafiam a imaginação.
+      </p>
+    </header>
+
+    <!-- TODAY CARD -->
+    <div id="todaySlot"></div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="Filtrar por título..." />
+      </div>
+      <div class="chips" id="filterChips">
+        <button class="chip active" data-filter="all">Todas</button>
+        <button class="chip" data-filter="image">📷 Fotos</button>
+        <button class="chip" data-filter="video">🎬 Vídeos</button>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="gallery-header">
+      <h2>🌌 Recém-capturadas</h2>
+      <span class="count" id="countLabel">carregando...</span>
+    </div>
+    <div class="gallery" id="gallery"></div>
+
+    <div class="load-more-wrap">
+      <button class="btn-load" id="btnLoadMore">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Carregar mais imagens
+      </button>
+    </div>
+
+    <footer>
+      Imagens fornecidas pela <a href="https://api.nasa.gov/" target="_blank">NASA Open APIs</a> · Desenvolvido por Belinelo
+    </footer>
+
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lb-close" id="lbClose">×</button>
+    <button class="lb-nav prev" id="lbPrev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="lb-nav next" id="lbNext"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    <div class="lb-counter" id="lbCounter"></div>
+    <div class="lightbox-inner">
+      <div class="lightbox-media" id="lbMedia"></div>
+      <div class="lightbox-info">
+        <div class="lb-date" id="lbDate"></div>
+        <h2 class="lb-title" id="lbTitle"></h2>
+        <p class="lb-explanation" id="lbExplanation"></p>
+        <div class="lb-actions">
+          <a class="lb-btn primary" id="lbHd" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Baixar HD
+          </a>
+          <button class="lb-btn" id="lbCopy">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            Copiar link
+          </button>
+          <a class="lb-btn" id="lbNasa" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            NASA
+          </a>
         </div>
+        <div class="lb-copyright" id="lbCopyright"></div>
       </div>
     </div>
   </div>
 
-  <footer data-aos="fade-up">
-    <p>© 2025 - Desenvolvido por Belinelo</p>
-  </footer>
+  <div class="toast" id="toast"></div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
-    // Inicializa AOS
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: true
-    });
+    const API = 'https://api.nasa.gov/planetary/apod';
+    const API_KEY = 'DEMO_KEY';
 
-    // Inicializa Vanilla-Tilt nos itens
-    document.addEventListener('DOMContentLoaded', () => {
-      const items = document.querySelectorAll('.gallery-item');
-      VanillaTilt.init(items, {
-        max: 8,
-        speed: 400,
-        glare: false
+    let items = [];     // all loaded items
+    let filtered = [];  // currently visible
+    let activeFilter = 'all';
+    let searchTerm = '';
+    let currentLbIdx = 0;
+
+    const toast = document.getElementById('toast');
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function formatDate(s) {
+      if (!s) return '';
+      const d = new Date(s);
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    // ============ STARFIELD ============
+    (function initStarfield() {
+      const canvas = document.getElementById('stars');
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      let w, h;
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        const count = Math.floor((w * h) / 9000);
+        stars = Array.from({length: count}, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 1.3 + 0.2,
+          tw: Math.random() * 0.02 + 0.005,
+          ph: Math.random() * Math.PI * 2,
+          vy: Math.random() * 0.05 + 0.02
+        }));
+      }
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (const s of stars) {
+          s.ph += s.tw;
+          s.y += s.vy;
+          if (s.y > h) s.y = 0;
+          const a = (Math.sin(s.ph) * 0.4 + 0.6);
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,255,255,${a * 0.9})`;
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      draw();
+    })();
+
+    // ============ FETCH NASA APOD ============
+    async function fetchAPOD(count = 24) {
+      try {
+        const res = await fetch(`${API}?api_key=${API_KEY}&count=${count}&thumbs=true`);
+        if (!res.ok) throw new Error('Falha na API');
+        const data = await res.json();
+        return data.filter(d => d.url);
+      } catch (e) {
+        showToast('Erro ao buscar imagens da NASA');
+        return [];
+      }
+    }
+
+    async function fetchToday() {
+      try {
+        const res = await fetch(`${API}?api_key=${API_KEY}&thumbs=true`);
+        if (!res.ok) throw new Error();
+        return await res.json();
+      } catch { return null; }
+    }
+
+    // ============ RENDER TODAY ============
+    async function renderToday() {
+      const slot = document.getElementById('todaySlot');
+      slot.innerHTML = `
+        <div class="today-card">
+          <div class="skeleton" style="aspect-ratio:16/10;"></div>
+          <div class="today-body">
+            <div class="skeleton" style="height:14px;width:120px;"></div>
+            <div class="skeleton" style="height:28px;width:80%;"></div>
+            <div class="skeleton" style="height:80px;"></div>
+          </div>
+        </div>`;
+      const t = await fetchToday();
+      if (!t) { slot.innerHTML = ''; return; }
+      const isVid = t.media_type === 'video';
+      const img = isVid ? (t.thumbnail_url || '') : t.url;
+      slot.innerHTML = `
+        <div class="today-card">
+          <div class="today-img-wrap" id="todayMedia">
+            ${isVid && !t.thumbnail_url
+              ? `<iframe src="${t.url}" allowfullscreen></iframe>`
+              : `<img src="${img}" alt="${escapeHtml(t.title)}"/>`}
+            <div class="today-tag">★ Imagem do dia</div>
+          </div>
+          <div class="today-body">
+            <div class="today-date">${formatDate(t.date)}</div>
+            <h2 class="today-title">${escapeHtml(t.title)}</h2>
+            <p class="today-text">${escapeHtml(t.explanation)}</p>
+            <div class="today-meta">
+              ${t.copyright ? `<span>© ${escapeHtml(t.copyright.trim())}</span>` : '<span>Domínio público</span>'}
+              ${isVid ? '<span>🎬 Vídeo</span>' : '<span>📷 Foto</span>'}
+            </div>
+            <button class="today-btn" id="todayOpen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+              Ver em destaque
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('todayOpen').addEventListener('click', () => openLightboxFromData(t));
+      document.getElementById('todayMedia').addEventListener('click', () => openLightboxFromData(t));
+    }
+
+    function openLightboxFromData(t) {
+      // Insert today at start of items if not present
+      const existing = items.findIndex(i => i.date === t.date);
+      if (existing >= 0) {
+        openLightbox(existing);
+      } else {
+        items.unshift(t);
+        applyFilters();
+        openLightbox(0);
+      }
+    }
+
+    // ============ RENDER GALLERY ============
+    function applyFilters() {
+      filtered = items.filter(i => {
+        const matchFilter = activeFilter === 'all' || i.media_type === activeFilter;
+        const matchSearch = !searchTerm || (i.title || '').toLowerCase().includes(searchTerm.toLowerCase());
+        return matchFilter && matchSearch;
+      });
+      renderGallery();
+      document.getElementById('countLabel').textContent = `${filtered.length} ${filtered.length === 1 ? 'item' : 'itens'}`;
+    }
+
+    function renderGallery() {
+      const gal = document.getElementById('gallery');
+      if (filtered.length === 0) {
+        gal.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1;column-span:all;">
+            <div class="ico">🔭</div>
+            <p>Nenhuma imagem encontrada. Tente outro filtro.</p>
+          </div>`;
+        gal.style.columnCount = 1;
+        return;
+      }
+      gal.style.columnCount = '';
+      gal.innerHTML = filtered.map((it, idx) => {
+        const isVid = it.media_type === 'video';
+        const thumb = isVid ? (it.thumbnail_url || '') : it.url;
+        if (!thumb) return '';
+        return `
+          <div class="item" data-idx="${idx}">
+            <img src="${thumb}" alt="${escapeHtml(it.title)}" loading="lazy" onerror="this.parentElement.style.display='none'"/>
+            ${isVid ? `
+              <div class="item-video-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>` : ''}
+            <div class="item-overlay">
+              <div class="item-title">${escapeHtml(it.title)}</div>
+              <div class="item-date">${formatDate(it.date)}</div>
+            </div>
+          </div>`;
+      }).join('');
+      gal.querySelectorAll('.item').forEach(el => {
+        el.addEventListener('click', () => openLightbox(parseInt(el.dataset.idx, 10)));
+      });
+    }
+
+    function showLoadingSkeletons() {
+      const gal = document.getElementById('gallery');
+      const heights = [220, 280, 320, 240, 300, 260, 340, 230];
+      gal.innerHTML = Array.from({length: 12}, (_, i) =>
+        `<div class="skeleton" style="height:${heights[i % heights.length]}px;"></div>`
+      ).join('');
+    }
+
+    // ============ FILTERS ============
+    document.querySelectorAll('#filterChips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#filterChips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        activeFilter = c.dataset.filter;
+        applyFilters();
       });
     });
-
-    // Configura Particles.js para estrela sutil
-    particlesJS('particles-js', {
-      particles: {
-        number: { value: 100, density: { enable: true, value_area: 800 } },
-        color: { value: "#ffffff" },
-        shape: { type: "circle" },
-        opacity: { value: 0.5, random: true },
-        size: { value: 2, random: true },
-        move: {
-          enable: true,
-          speed: 0.3,
-          direction: "none",
-          out_mode: "out"
-        },
-        line_linked: { enable: false }
-      },
-      interactivity: {
-        detect_on: "canvas",
-        events: { onhover: { enable: false }, onclick: { enable: false }, resize: true }
-      },
-      retina_detect: true
+    document.getElementById('searchInput').addEventListener('input', e => {
+      searchTerm = e.target.value.trim();
+      applyFilters();
     });
 
-    // Modal: ao clicar em .gallery-item, atualiza imagem e título
-    const modalImage = document.getElementById('modalImage');
-    modalImage.addEventListener('show.bs.modal', event => {
-      const trigger = event.relatedTarget;
-      const src = trigger.getAttribute('data-img-src');
-      const title = trigger.getAttribute('data-img-title');
-      const imgEl = document.getElementById('modal-img');
-      const titleEl = document.getElementById('modal-title');
-      imgEl.src = src;
-      imgEl.alt = title;
-      titleEl.textContent = title;
+    // ============ LIGHTBOX ============
+    const lb = document.getElementById('lightbox');
+    function openLightbox(idx) {
+      currentLbIdx = idx;
+      const it = filtered[idx];
+      if (!it) return;
+      const media = document.getElementById('lbMedia');
+      const isVid = it.media_type === 'video';
+      const isYoutube = isVid && /youtube|youtu\.be|vimeo/i.test(it.url);
+      if (isYoutube) {
+        media.innerHTML = `<iframe src="${it.url}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      } else if (isVid) {
+        media.innerHTML = `<img src="${it.thumbnail_url || it.url}" alt="${escapeHtml(it.title)}"/>`;
+      } else {
+        media.innerHTML = `<img src="${it.hdurl || it.url}" alt="${escapeHtml(it.title)}"/>`;
+      }
+      document.getElementById('lbDate').textContent = formatDate(it.date);
+      document.getElementById('lbTitle').textContent = it.title;
+      document.getElementById('lbExplanation').textContent = it.explanation;
+      document.getElementById('lbCopyright').textContent = it.copyright ? `© ${it.copyright.trim()}` : 'Domínio público · NASA';
+      document.getElementById('lbHd').href = it.hdurl || it.url;
+      document.getElementById('lbNasa').href = `https://apod.nasa.gov/apod/ap${it.date.slice(2).replace(/-/g, '')}.html`;
+      document.getElementById('lbCounter').textContent = `${idx + 1} / ${filtered.length}`;
+      lb.classList.add('open');
+    }
+    function closeLightbox() {
+      const media = document.getElementById('lbMedia');
+      if (media.querySelector('iframe')) media.querySelector('iframe').src = '';
+      lb.classList.remove('open');
+    }
+    function navLightbox(dir) {
+      let next = currentLbIdx + dir;
+      if (next < 0) next = filtered.length - 1;
+      if (next >= filtered.length) next = 0;
+      openLightbox(next);
+    }
+    document.getElementById('lbClose').addEventListener('click', closeLightbox);
+    document.getElementById('lbPrev').addEventListener('click', () => navLightbox(-1));
+    document.getElementById('lbNext').addEventListener('click', () => navLightbox(1));
+    lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+    document.addEventListener('keydown', e => {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navLightbox(-1);
+      if (e.key === 'ArrowRight') navLightbox(1);
     });
+    document.getElementById('lbCopy').addEventListener('click', async () => {
+      const it = filtered[currentLbIdx];
+      try {
+        await navigator.clipboard.writeText(it.hdurl || it.url);
+        showToast('Link copiado ✓');
+      } catch { showToast('Falha ao copiar'); }
+    });
+
+    // ============ LOAD MORE ============
+    const btnLoad = document.getElementById('btnLoadMore');
+    btnLoad.addEventListener('click', async () => {
+      btnLoad.disabled = true;
+      btnLoad.innerHTML = '<div class="spin"></div> Carregando...';
+      const more = await fetchAPOD(16);
+      items = items.concat(more);
+      applyFilters();
+      btnLoad.disabled = false;
+      btnLoad.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Carregar mais imagens`;
+    });
+
+    // ============ INIT ============
+    (async function init() {
+      renderToday();
+      showLoadingSkeletons();
+      items = await fetchAPOD(24);
+      // sort by date desc
+      items.sort((a, b) => new Date(b.date) - new Date(a.date));
+      applyFilters();
+    })();
   </script>
 </body>
 </html>

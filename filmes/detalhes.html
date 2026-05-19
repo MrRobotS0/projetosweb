@@ -1,263 +1,827 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="scroll-smooth">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detalhes do Filme</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <title>Detalhes · NETFLIX</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <style>
-    /* Backdrop fullscreen */
-    #backdrop {
+    :root {
+      --bg: #0a0a0a;
+      --bg-2: #141414;
+      --surface: rgba(255,255,255,0.06);
+      --surface-2: rgba(255,255,255,0.10);
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #ffffff;
+      --text-dim: #b3b3b3;
+      --text-dim-2: #737373;
+      --brand: #e50914;
+      --brand-dark: #b00710;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============ HEADER ============ */
+    header {
       position: fixed;
-      inset: 0;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 16px 4%;
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85), transparent);
+      transition: background .3s ease;
+    }
+    header.scrolled { background: #141414; }
+    .logo {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: 1.8rem;
+      color: var(--brand);
+      letter-spacing: -0.04em;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color .2s ease;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* ============ BACKDROP HERO ============ */
+    .hero {
+      position: relative;
+      min-height: 85vh;
+      padding: 18vh 4% 8vh;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
       background-size: cover;
-      background-position: center;
-      filter: blur(20px) brightness(0.3);
-      z-index: -1;
+      background-position: center 20%;
+      z-index: 0;
     }
-    /* Scrollbar hide */
-    .scrollbar-hide::-webkit-scrollbar {
-      display: none;
+    .hero::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(90deg, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.7) 35%, rgba(10,10,10,0.4) 60%, rgba(10,10,10,0.2) 100%),
+        linear-gradient(180deg, transparent 50%, var(--bg) 100%);
+      z-index: 1;
     }
-    /* Custom scrollbar for cast */
-    .cast-scroll::-webkit-scrollbar {
-      height: 8px;
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 720px;
     }
-    .cast-scroll::-webkit-scrollbar-track {
-      background: transparent;
+    .badges {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 14px;
     }
-    .cast-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.3);
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--border);
     }
-    /* Rating bar */
-    .rating-bar-bg {
-      background-color: rgba(255,255,255,0.2);
+    .badge.brand {
+      background: rgba(229,9,20,0.18);
+      border-color: var(--brand);
+      color: #fda4a4;
     }
-    .rating-bar-fill {
-      background-color: #00d8ff;
+    .badge.new {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.4);
+      color: #86efac;
     }
-    /* Button hover effects */
+    .badge.coming {
+      background: rgba(59,130,246,0.18);
+      border-color: rgba(59,130,246,0.4);
+      color: #93c5fd;
+    }
+    .badge.classic {
+      background: rgba(168,85,247,0.15);
+      border-color: rgba(168,85,247,0.4);
+      color: #c4b5fd;
+    }
+    .hero-title {
+      font-weight: 900;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+      text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    }
+    .hero-tagline {
+      font-style: italic;
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+    }
+    .meta-row {
+      display: flex; flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    .rating-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+    .rating-pill.green { color: #86efac; }
+    .meta-divider { color: var(--text-dim-2); }
+    .genres {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .genre {
+      padding: 5px 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .overview {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #e5e5e5;
+      margin-bottom: 26px;
+      max-width: 640px;
+    }
+    .hero-actions {
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 26px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: inherit;
+    }
     .btn-primary {
-      background-color: #00d8ff;
-      color: #000;
+      background: white;
+      color: black;
     }
     .btn-primary:hover {
-      background-color: #008bb5;
+      background: rgba(255,255,255,0.85);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     .btn-secondary {
-      background-color: rgba(255,255,255,0.2);
-      color: #fff;
+      background: rgba(115,115,115,0.5);
+      color: white;
     }
-    .btn-secondary:hover {
-      background-color: rgba(255,255,255,0.3);
+    .btn-secondary:hover { background: rgba(115,115,115,0.7); }
+    .btn-icon {
+      width: 44px; height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(42,42,42,0.7);
+      border: 2px solid rgba(255,255,255,0.5);
+      color: white;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .btn-icon:hover {
+      border-color: white;
+      background: rgba(42,42,42,0.9);
+    }
+    .btn-icon.active {
+      background: white;
+      color: black;
+      border-color: white;
+    }
+
+    /* ============ INFO SECTIONS ============ */
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 4% 80px;
+    }
+    .section {
+      margin-bottom: 56px;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 18px;
+      padding-left: 14px;
+      border-left: 4px solid var(--brand);
+    }
+
+    /* Info grid (technical details) */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .info-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+    }
+    .info-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim-2);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .info-value a { color: var(--text); text-decoration: none; border-bottom: 1px dashed transparent; }
+    .info-value a:hover { border-bottom-color: var(--brand); color: var(--brand); }
+
+    /* Rating circular */
+    .rating-circle {
+      width: 80px; height: 80px;
+      position: relative;
+    }
+    .rating-circle svg { transform: rotate(-90deg); }
+    .rating-circle text {
+      transform: rotate(90deg);
+      transform-origin: 50% 50%;
+    }
+    .rating-circle-label {
+      position: absolute;
+      inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      font-weight: 700;
+    }
+    .rating-circle-label .num {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+    .rating-circle-label .out {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .rating-block {
+      display: flex; gap: 16px; align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 20px;
+    }
+    .rating-info {
+      flex: 1;
+    }
+    .rating-info .title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .rating-info .sub {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* ============ CAST ============ */
+    .cast-scroll {
+      display: flex; gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+    .cast-scroll::-webkit-scrollbar { height: 6px; }
+    .cast-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .cast-card {
+      flex-shrink: 0;
+      width: 130px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform .25s ease;
+    }
+    .cast-card:hover { transform: translateY(-4px); }
+    .cast-photo {
+      width: 130px; height: 180px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--surface);
+      margin-bottom: 8px;
+    }
+    .cast-photo-empty {
+      width: 130px; height: 180px;
+      border-radius: 6px;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-dim-2);
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .cast-name {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .cast-role {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ============ SIMILAR ============ */
+    .similar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .sim-card {
+      position: relative;
+      cursor: pointer;
+      border-radius: 4px;
+      overflow: hidden;
+      transition: transform .25s ease;
+      aspect-ratio: 2/3;
+    }
+    .sim-card:hover { transform: scale(1.04); }
+    .sim-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .sim-overlay {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 30px 10px 8px;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.95));
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .sim-card:hover .sim-overlay { opacity: 1; }
+    .sim-title {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .sim-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* ============ TRAILER MODAL ============ */
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      padding: 20px;
+    }
+    .modal.open { opacity: 1; pointer-events: auto; }
+    .modal-wrap {
+      width: 100%; max-width: 960px;
+      position: relative;
+    }
+    .modal iframe {
+      width: 100%; aspect-ratio: 16/9;
+      border: none; border-radius: 8px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .modal-close {
+      position: absolute;
+      top: -44px; right: 0;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--border-strong);
+      color: white;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { background: var(--brand); border-color: var(--brand); }
+
+    /* ============ TOAST ============ */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(20,20,20,0.95);
+      border: 1px solid var(--border-strong);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all .3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Loading */
+    .loading {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 80vh;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .loading-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--surface);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      .hero { min-height: 75vh; padding-top: 16vh; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .similar-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
     }
   </style>
 </head>
+<body>
 
-<body class="bg-black text-white font-sans" onload="AOS.init()">
-  <!-- Backdrop image blurred -->
-  <div id="backdrop"></div>
-
-  <div class="p-6 max-w-6xl mx-auto">
-    <a href="index.html" class="inline-block text-gray-300 hover:text-white mb-6">
-      <i class="fas fa-arrow-left"></i> Voltar
+  <!-- HEADER -->
+  <header id="header">
+    <div style="display:flex;align-items:center;gap:24px;">
+      <a href="index.html" class="logo">NETFLIX</a>
+    </div>
+    <a href="index.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Voltar ao catálogo
     </a>
-    <div id="conteudo" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"></div>
+  </header>
+
+  <div id="content">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <div style="color: var(--text-dim); font-size: 14px;">Carregando...</div>
+    </div>
   </div>
+
+  <!-- TRAILER MODAL -->
+  <div class="modal" id="modal">
+    <div class="modal-wrap">
+      <button class="modal-close" id="modalClose">×</button>
+      <iframe id="trailerFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 
   <script>
     const API_KEY = 'fb0021679c70d3e76017cbc60ac656c6';
-    const IMG_PATH = 'https://image.tmdb.org/t/p/w500';
-    const BACKDROP_PATH = 'https://image.tmdb.org/t/p/original';
+    const IMG_W500 = 'https://image.tmdb.org/t/p/w500';
+    const IMG_W300 = 'https://image.tmdb.org/t/p/w300';
+    const IMG_ORIG = 'https://image.tmdb.org/t/p/original';
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     const type = params.get('type') || 'movie';
 
-    // Favoritos no localStorage
-    function getFavorites() {
-      return JSON.parse(localStorage.getItem('favoritos') || '[]');
+    const toast = document.getElementById('toast');
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 2000);
     }
-    function isInFavorites(id) {
-      return getFavorites().some(f => String(f.id) === String(id));
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
-    function toggleFavorite(id, title, poster_path, type, btn) {
-      let favs = getFavorites();
-      const exists = favs.find(f => String(f.id) === String(id));
+
+    function getFavs() { return JSON.parse(localStorage.getItem('favoritos') || '[]'); }
+    function isFav(id) { return getFavs().some(f => String(f.id) === String(id)); }
+    function toggleFav(movie) {
+      let favs = getFavs();
+      const exists = favs.find(f => String(f.id) === String(movie.id));
       if (exists) {
-        favs = favs.filter(f => String(f.id) !== String(id));
-        btn.innerHTML = '<i class="far fa-star"></i>';
+        favs = favs.filter(f => String(f.id) !== String(movie.id));
+        showToast('Removido da Minha Lista');
       } else {
-        favs.push({ id, title, poster_path, type });
-        btn.innerHTML = '<i class="fas fa-star"></i>';
+        favs.push({ id: movie.id, title: movie.title || movie.name, poster_path: movie.poster_path, vote_average: movie.vote_average, release_date: movie.release_date });
+        showToast('Adicionado à Minha Lista ✓');
       }
       localStorage.setItem('favoritos', JSON.stringify(favs));
     }
 
-    // Formata data para pt-BR
-    function formatDate(dateStr) {
-      if (!dateStr) return 'Desconhecido';
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    function formatDate(s) {
+      if (!s) return 'Desconhecido';
+      return new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
     }
-    // Extrai diretor(s)
-    function getDirectors(crew) {
-      return crew.filter(c => c.job === 'Director' || c.job === 'Diretor');
+    function formatRuntime(min) {
+      if (!min) return '—';
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return h ? `${h}h ${m}min` : `${m}min`;
+    }
+    function formatMoney(n) {
+      if (!n) return '—';
+      return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    }
+    function ratingColor(r) {
+      if (r >= 7.5) return '#22c55e';
+      if (r >= 6) return '#fbbf24';
+      return '#ef4444';
+    }
+    function statusBadge(releaseDate) {
+      if (!releaseDate) return '';
+      const rel = new Date(releaseDate);
+      const today = new Date();
+      const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(today.getMonth() - 6);
+      if (rel > today) return '<span class="badge coming">🚀 Em Breve</span>';
+      if (rel < new Date('2000-01-01')) return '<span class="badge classic">🎞️ Clássico</span>';
+      if (rel > sixMonthsAgo) return '<span class="badge new">✨ Lançamento</span>';
+      return '';
     }
 
-    async function carregarDetalhes() {
+    async function load() {
       try {
-        const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${API_KEY}&language=pt-BR&append_to_response=videos,credits`);
-        const data = await res.json();
+        const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${API_KEY}&language=pt-BR&append_to_response=videos,credits,similar`);
+        const d = await res.json();
+        if (d.success === false) throw new Error(d.status_message);
 
-        const title = data.title || data.name || 'Título Desconhecido';
-        const overview = data.overview || 'Descrição não disponível.';
-        const releaseDate = data.release_date || data.first_air_date || '';
-        const posterPath = data.poster_path ? IMG_PATH + data.poster_path : '';
-        const backdropPath = data.backdrop_path ? BACKDROP_PATH + data.backdrop_path : '';
-        const genres = (data.genres || []).map(g => `<span class="bg-red-600 px-3 py-1 rounded-full text-sm">${g.name}</span>`).join(' ');
-        // Trailer YouTube
-        const trailer = data.videos?.results?.find(v => (v.type === 'Trailer' || v.type === 'trailers') && v.site === 'YouTube');
-        // Rating
-        const rating = data.vote_average || 0;
-        const ratingPercent = Math.round((rating / 10) * 100);
-        // Badge: Em Breve, Clássico, Lançamento
-        let badgeHtml = '';
-        if (releaseDate) {
-          const rel = new Date(releaseDate);
-          const today = new Date();
-          const sixMonthsAgo = new Date();
-          sixMonthsAgo.setMonth(today.getMonth() - 6);
-          if (rel > today) {
-            badgeHtml = '<span class="bg-blue-600 text-sm px-2 py-1 rounded-full">Em Breve</span>';
-          } else if (rel < new Date('2010-01-01')) {
-            badgeHtml = '<span class="bg-gray-600 text-sm px-2 py-1 rounded-full">Clássico</span>';
-          } else if (rel > sixMonthsAgo) {
-            badgeHtml = '<span class="bg-green-600 text-sm px-2 py-1 rounded-full">Lançamento</span>';
-          }
-        }
-        // Elenco principal (até 12), com fotos
-        const castArr = (data.credits?.cast || []).slice(0, 12);
-        const castHtml = castArr.map(actor => {
-          const profile = actor.profile_path ? IMG_PATH.replace('/w500','/w200') + actor.profile_path : '';
-          return `
-            <div class="flex-none w-24 text-center">
-              <div class="w-24 h-32 bg-gray-800 rounded-lg overflow-hidden mx-auto">
-                ${profile ? `<img src="${profile}" alt="${actor.name}" class="w-full h-full object-cover hover:scale-105 transition-transform">`
-                          : `<div class="w-full h-full flex items-center justify-center bg-gray-700 text-gray-400 text-xs">Sem foto</div>`}
-              </div>
-              <p class="mt-2 text-xs truncate">${actor.name}</p>
-              <p class="text-[10px] text-gray-400 truncate">${actor.character || ''}</p>
-            </div>`;
-        }).join('');
+        const title = d.title || d.name || 'Sem título';
+        const original = d.original_title || d.original_name || '';
+        const overview = d.overview || 'Descrição não disponível.';
+        const releaseDate = d.release_date || d.first_air_date || '';
+        const year = releaseDate ? releaseDate.slice(0, 4) : '';
+        const backdrop = d.backdrop_path ? IMG_ORIG + d.backdrop_path : '';
+        const tagline = d.tagline || '';
+        const rating = d.vote_average || 0;
+        const votes = d.vote_count || 0;
+        const runtime = d.runtime || (d.episode_run_time?.[0]) || 0;
+        const genres = d.genres || [];
+        const directors = (d.credits?.crew || []).filter(c => c.job === 'Director');
+        const writers = (d.credits?.crew || []).filter(c => c.job === 'Screenplay' || c.job === 'Writer');
+        const cast = (d.credits?.cast || []).slice(0, 16);
+        const similar = (d.similar?.results || []).filter(s => s.poster_path).slice(0, 12);
 
-        // Diretores
-        const directors = getDirectors(data.credits?.crew || []);
-        const directorsHtml = directors.length
-          ? directors.map(d => `<a href="https://www.themoviedb.org/person/${d.id}" target="_blank" class="hover:underline">${d.name}</a>`).join(', ')
-          : 'Desconhecido';
-
-        // Atualiza backdrop
-        if (backdropPath) {
-          document.getElementById('backdrop').style.backgroundImage = `url(${backdropPath})`;
+        // Trailer (pt → en fallback)
+        let trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+        if (!trailer) {
+          try {
+            const resEn = await fetch(`https://api.themoviedb.org/3/${type}/${id}/videos?api_key=${API_KEY}`);
+            const dEn = await resEn.json();
+            trailer = dEn.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+          } catch {}
         }
 
-        // Monta HTML
-        const conteudo = document.getElementById('conteudo');
-        conteudo.innerHTML = `
-          <!-- Poster e Botões -->
-          <div data-aos="fade-right" class="space-y-4">
-            ${posterPath
-              ? `<img src="${posterPath}" alt="${title}" class="rounded-xl w-full shadow-xl mx-auto">`
-              : `<div class="w-full h-[500px] bg-gray-800 rounded-xl flex items-center justify-center">Sem poster</div>`}
-            <div class="flex gap-4 justify-center">
-              <button id="playTrailerBtn" class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-                <i class="fas fa-play"></i> Trailer
-              </button>
-              <button id="favBtn" class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
-                ${isInFavorites(id) ? '<i class="fas fa-star"></i> Remover Favorito' : '<i class="far fa-star"></i> Favoritar'}
-              </button>
-            </div>
-          </div>
-          <!-- Informações -->
-          <div data-aos="fade-left" class="space-y-4">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <h1 class="text-3xl font-bold">${title}</h1>
-              ${badgeHtml}
-            </div>
-            <div class="flex flex-wrap gap-2">${genres}</div>
-            <p class="text-gray-300 leading-relaxed">${overview}</p>
-            <ul class="text-sm space-y-1 text-gray-400">
-              <li><strong>Data de lançamento:</strong> ${formatDate(releaseDate)}</li>
-              <li><strong>Direção:</strong> ${directorsHtml}</li>
-              <li><strong>Nota média:</strong> ${rating.toFixed(1)} / 10</li>
-            </ul>
-            <!-- Barra de avaliação -->
-            <div class="w-full bg-white/20 h-3 rounded-full rating-bar-bg">
-              <div class="h-3 rounded-full rating-bar-fill" style="width: ${ratingPercent}%;"></div>
-            </div>
-            <!-- Trailer Modal (injetado via JS) -->
-            <div id="trailerContainer" class="hidden fixed inset-0 flex items-center justify-center z-50">
-              <div class="absolute inset-0 bg-black bg-opacity-75" onclick="closeTrailer()"></div>
-              <div class="relative w-full max-w-3xl mx-4">
-                <button onclick="closeTrailer()" class="absolute top-2 right-2 text-white text-2xl z-10">&times;</button>
-                <iframe id="trailerFrame" class="w-full h-64 md:h-96 rounded-lg shadow-lg" src="" frameborder="0" allowfullscreen></iframe>
+        const ratingPct = Math.round((rating / 10) * 100);
+        const ratingC = ratingColor(rating);
+        const fav = isFav(d.id);
+
+        document.getElementById('content').innerHTML = `
+          <section class="hero">
+            <div class="hero-bg" style="background-image:url(${backdrop})"></div>
+            <div class="hero-content">
+              <div class="badges">
+                <span class="badge brand">🎬 NETFLIX</span>
+                ${statusBadge(releaseDate)}
+                ${d.adult ? '<span class="badge" style="background:rgba(239,68,68,0.18);border-color:#ef4444;color:#fca5a5">+18</span>' : ''}
+              </div>
+              <h1 class="hero-title">${escapeHtml(title)}</h1>
+              ${tagline ? `<p class="hero-tagline">“${escapeHtml(tagline)}”</p>` : ''}
+              <div class="meta-row">
+                <span class="rating-pill ${rating >= 7.5 ? 'green' : ''}">★ ${rating.toFixed(1)}</span>
+                ${year ? `<span class="meta-divider">·</span><span>${year}</span>` : ''}
+                ${runtime ? `<span class="meta-divider">·</span><span>${formatRuntime(runtime)}</span>` : ''}
+                ${votes ? `<span class="meta-divider">·</span><span>${votes.toLocaleString('pt-BR')} avaliações</span>` : ''}
+              </div>
+              <div class="genres">
+                ${genres.map(g => `<span class="genre">${escapeHtml(g.name)}</span>`).join('')}
+              </div>
+              <p class="overview">${escapeHtml(overview)}</p>
+              <div class="hero-actions">
+                <button class="btn btn-primary" id="btnPlay" ${trailer ? '' : 'disabled'}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  ${trailer ? 'Assistir Trailer' : 'Trailer Indisponível'}
+                </button>
+                <button class="btn btn-secondary" id="btnInfo">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  Mais informações
+                </button>
+                <button class="btn-icon ${fav ? 'active' : ''}" id="btnFav" title="${fav ? 'Remover da Minha Lista' : 'Adicionar à Minha Lista'}">
+                  ${fav ? '✓' : '+'}
+                </button>
+                <button class="btn-icon" id="btnShare" title="Compartilhar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
               </div>
             </div>
-            <!-- Elenco -->
-            ${castArr.length ? `
-            <div>
-              <h2 class="text-2xl font-semibold mb-3">Elenco Principal</h2>
-              <div class="flex gap-4 overflow-x-auto cast-scroll pb-2">
-                ${castHtml}
+          </section>
+
+          <main>
+
+            <section class="section">
+              <div class="rating-block">
+                <div class="rating-circle">
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.1)" stroke-width="6" fill="none"/>
+                    <circle cx="40" cy="40" r="34" stroke="${ratingC}" stroke-width="6" fill="none"
+                            stroke-linecap="round"
+                            stroke-dasharray="${2 * Math.PI * 34}"
+                            stroke-dashoffset="${2 * Math.PI * 34 * (1 - ratingPct/100)}"/>
+                  </svg>
+                  <div class="rating-circle-label">
+                    <span class="num">${rating.toFixed(1)}</span>
+                    <span class="out">/ 10</span>
+                  </div>
+                </div>
+                <div class="rating-info">
+                  <div class="title">Avaliação dos usuários</div>
+                  <div class="sub">${votes.toLocaleString('pt-BR')} votos · ${ratingPct >= 75 ? 'Aclamado pela crítica' : ratingPct >= 60 ? 'Bem recebido' : 'Recepção mista'}</div>
+                </div>
               </div>
-            </div>` : ''}
-          </div>
+            </section>
+
+            <section class="section">
+              <h2 class="section-title">Detalhes</h2>
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">Lançamento</div>
+                  <div class="info-value">${formatDate(releaseDate)}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">${type === 'movie' ? 'Duração' : 'Episódio'}</div>
+                  <div class="info-value">${formatRuntime(runtime)}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Título Original</div>
+                  <div class="info-value">${escapeHtml(original)}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Idioma</div>
+                  <div class="info-value">${(d.original_language || '').toUpperCase()}</div>
+                </div>
+                ${directors.length ? `
+                  <div class="info-item">
+                    <div class="info-label">Direção</div>
+                    <div class="info-value">${directors.map(p => `<a href="https://www.themoviedb.org/person/${p.id}" target="_blank">${escapeHtml(p.name)}</a>`).join(', ')}</div>
+                  </div>` : ''}
+                ${writers.length ? `
+                  <div class="info-item">
+                    <div class="info-label">Roteiro</div>
+                    <div class="info-value">${writers.slice(0,3).map(p => escapeHtml(p.name)).join(', ')}</div>
+                  </div>` : ''}
+                ${d.budget ? `
+                  <div class="info-item">
+                    <div class="info-label">Orçamento</div>
+                    <div class="info-value">${formatMoney(d.budget)}</div>
+                  </div>` : ''}
+                ${d.revenue ? `
+                  <div class="info-item">
+                    <div class="info-label">Bilheteria</div>
+                    <div class="info-value">${formatMoney(d.revenue)}</div>
+                  </div>` : ''}
+                ${d.status ? `
+                  <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">${escapeHtml(d.status)}</div>
+                  </div>` : ''}
+              </div>
+            </section>
+
+            ${cast.length ? `
+              <section class="section">
+                <h2 class="section-title">Elenco</h2>
+                <div class="cast-scroll">
+                  ${cast.map(a => `
+                    <a class="cast-card" href="https://www.themoviedb.org/person/${a.id}" target="_blank" style="text-decoration:none;color:inherit;">
+                      ${a.profile_path
+                        ? `<img class="cast-photo" src="${IMG_W300 + a.profile_path}" alt="${escapeHtml(a.name)}" loading="lazy"/>`
+                        : `<div class="cast-photo-empty">👤</div>`}
+                      <div class="cast-name">${escapeHtml(a.name)}</div>
+                      <div class="cast-role">${escapeHtml(a.character || '')}</div>
+                    </a>
+                  `).join('')}
+                </div>
+              </section>` : ''}
+
+            ${similar.length ? `
+              <section class="section">
+                <h2 class="section-title">Mais como este</h2>
+                <div class="similar-grid">
+                  ${similar.map(s => `
+                    <div class="sim-card" onclick="window.location.href='detalhes.html?id=${s.id}&type=${type}'">
+                      <img src="${IMG_W500 + s.poster_path}" alt="${escapeHtml(s.title || s.name)}" loading="lazy"/>
+                      <div class="sim-overlay">
+                        <div class="sim-title">${escapeHtml(s.title || s.name)}</div>
+                        <div class="sim-meta">★ ${(s.vote_average || 0).toFixed(1)} · ${(s.release_date || s.first_air_date || '').slice(0,4)}</div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </section>` : ''}
+
+          </main>
         `;
 
-        // Eventos dos botões
-        const favBtn = document.getElementById('favBtn');
-        favBtn.addEventListener('click', () => {
-          toggleFavorite(id, title, data.poster_path, type, favBtn);
-          // Atualiza texto/icon
-          if (isInFavorites(id)) {
-            favBtn.innerHTML = '<i class="fas fa-star"></i> Remover Favorito';
-          } else {
-            favBtn.innerHTML = '<i class="far fa-star"></i> Favoritar';
-          }
+        // ===== EVENTS =====
+        if (trailer) {
+          document.getElementById('btnPlay').addEventListener('click', () => {
+            document.getElementById('trailerFrame').src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+            document.getElementById('modal').classList.add('open');
+          });
+        }
+        document.getElementById('btnInfo').addEventListener('click', () => {
+          document.querySelector('.section').scrollIntoView({ behavior: 'smooth' });
+        });
+        document.getElementById('btnFav').addEventListener('click', () => {
+          toggleFav({ id: d.id, title, poster_path: d.poster_path, vote_average: rating, release_date: releaseDate });
+          const btn = document.getElementById('btnFav');
+          const nowFav = isFav(d.id);
+          btn.classList.toggle('active', nowFav);
+          btn.innerHTML = nowFav ? '✓' : '+';
+          btn.title = nowFav ? 'Remover da Minha Lista' : 'Adicionar à Minha Lista';
+        });
+        document.getElementById('btnShare').addEventListener('click', async () => {
+          try {
+            if (navigator.share) {
+              await navigator.share({ title, text: overview, url: window.location.href });
+            } else {
+              await navigator.clipboard.writeText(window.location.href);
+              showToast('Link copiado ✓');
+            }
+          } catch {}
         });
 
-        const playBtn = document.getElementById('playTrailerBtn');
-        if (trailer && trailer.key) {
-          playBtn.addEventListener('click', () => {
-            const frame = document.getElementById('trailerFrame');
-            frame.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
-            document.getElementById('trailerContainer').classList.remove('hidden');
-          });
-        } else {
-          playBtn.disabled = true;
-          playBtn.classList.add('opacity-50', 'cursor-not-allowed');
-          playBtn.innerHTML = '<i class="fas fa-ban"></i> Trailer Indisponível';
-        }
-
       } catch (err) {
-        console.error('Erro ao carregar detalhes:', err);
-        document.getElementById('conteudo').innerHTML = `<p class="text-red-500">Erro ao carregar detalhes do filme.</p>`;
+        document.getElementById('content').innerHTML = `
+          <div class="loading">
+            <h2 style="color:var(--brand)">Erro ao carregar</h2>
+            <p style="color:var(--text-dim)">${escapeHtml(err.message || 'Tente novamente mais tarde.')}</p>
+            <a href="index.html" class="btn btn-primary" style="margin-top:12px;">Voltar ao catálogo</a>
+          </div>`;
       }
     }
 
-    function closeTrailer() {
-      const container = document.getElementById('trailerContainer');
-      const frame = document.getElementById('trailerFrame');
-      frame.src = '';
-      container.classList.add('hidden');
+    // Modal
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target.id === 'modal') closeModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    function closeModal() {
+      document.getElementById('trailerFrame').src = '';
+      document.getElementById('modal').classList.remove('open');
     }
 
-    carregarDetalhes();
+    // Header scroll
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    load();
   </script>
 </body>
 </html>
